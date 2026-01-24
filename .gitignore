@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large database files (uncompressed)
+src/data/*.db
+src/data/*.db-shm
+src/data/*.db-wal
+# Note: src/data/*.gz is tracked with Git LFS
+
+# Build scripts output
+scripts/book-names-mapping.json
+scripts/unmatched-books.json
