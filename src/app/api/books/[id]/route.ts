@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const book = getBook(id);
+    const book = await getBook(id);
 
     if (!book) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const volumes = getBookVolumes(id);
+    const volumes = await getBookVolumes(id);
 
     return NextResponse.json({ book, volumes });
   } catch (error) {

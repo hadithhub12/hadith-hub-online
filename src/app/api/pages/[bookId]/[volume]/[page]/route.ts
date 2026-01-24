@@ -19,7 +19,7 @@ export async function GET(
       );
     }
 
-    const pageData = getPage(bookId, volume, page);
+    const pageData = await getPage(bookId, volume, page);
 
     if (!pageData) {
       return NextResponse.json(
@@ -28,8 +28,8 @@ export async function GET(
       );
     }
 
-    const book = getBook(bookId);
-    const navigation = getAdjacentPages(bookId, volume, page);
+    const book = await getBook(bookId);
+    const navigation = await getAdjacentPages(bookId, volume, page);
 
     return NextResponse.json({
       page: pageData,

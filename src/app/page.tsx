@@ -1,12 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
 import LanguageToggle from '@/components/LanguageToggle';
 import type { Book } from '@/lib/types';
 
 type ViewMode = 'grid' | 'list' | 'compact';
+type SortBy = 'title' | 'author' | 'pages';
+type SortOrder = 'asc' | 'desc';
+
+const ITEMS_PER_PAGE = 24;
 
 // View mode icons
 function GridIcon({ className = 'w-5 h-5' }: { className?: string }) {
@@ -41,6 +45,9 @@ export default function Home() {
   const [filter, setFilter] = useState<'all' | 'shia' | 'sunni'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [sortBy, setSortBy] = useState<SortBy>('title');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     async function fetchBooks() {
@@ -58,24 +65,60 @@ export default function Home() {
     fetchBooks();
   }, []);
 
-  // Filter and search books
-  const filteredBooks = books.filter((book) => {
-    // Sect filter
-    if (filter !== 'all' && book.sect !== filter) return false;
+  // Filter, search, and sort books
+  const filteredAndSortedBooks = useMemo(() => {
+    // First filter
+    let result = books.filter((book) => {
+      // Sect filter
+      if (filter !== 'all' && book.sect !== filter) return false;
 
-    // Local search filter (for quick filtering before going to search page)
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return (
-        book.title_ar.toLowerCase().includes(query) ||
-        (book.title_en && book.title_en.toLowerCase().includes(query)) ||
-        (book.author_ar && book.author_ar.toLowerCase().includes(query)) ||
-        (book.author_en && book.author_en.toLowerCase().includes(query))
-      );
-    }
+      // Local search filter (for quick filtering before going to search page)
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          book.title_ar.toLowerCase().includes(query) ||
+          (book.title_en && book.title_en.toLowerCase().includes(query)) ||
+          (book.author_ar && book.author_ar.toLowerCase().includes(query)) ||
+          (book.author_en && book.author_en.toLowerCase().includes(query))
+        );
+      }
 
-    return true;
-  });
+      return true;
+    });
+
+    // Then sort
+    result.sort((a, b) => {
+      let comparison = 0;
+
+      if (sortBy === 'title') {
+        const titleA = language === 'en' && a.title_en ? a.title_en : a.title_ar;
+        const titleB = language === 'en' && b.title_en ? b.title_en : b.title_ar;
+        comparison = titleA.localeCompare(titleB, language === 'ar' ? 'ar' : 'en');
+      } else if (sortBy === 'author') {
+        const authorA = (language === 'en' && a.author_en ? a.author_en : a.author_ar) || '';
+        const authorB = (language === 'en' && b.author_en ? b.author_en : b.author_ar) || '';
+        comparison = authorA.localeCompare(authorB, language === 'ar' ? 'ar' : 'en');
+      } else if (sortBy === 'pages') {
+        comparison = (a.total_pages || 0) - (b.total_pages || 0);
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    return result;
+  }, [books, filter, searchQuery, sortBy, sortOrder, language]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchQuery, sortBy, sortOrder]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedBooks.length / ITEMS_PER_PAGE);
+  const paginatedBooks = filteredAndSortedBooks.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   // Load saved preferences
   useEffect(() => {
@@ -97,6 +140,15 @@ export default function Home() {
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem('hadith-view', mode);
+  };
+
+  const handleSortChange = (newSortBy: SortBy) => {
+    if (sortBy === newSortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('asc');
+    }
   };
 
   return (
@@ -186,8 +238,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Quick local filter */}
-          <div className="mt-3">
+          {/* Quick local filter and sort controls */}
+          <div className="mt-3 flex flex-wrap items-center gap-4">
             <input
               type="text"
               value={searchQuery}
@@ -197,9 +249,45 @@ export default function Home() {
                   ? 'تصفية الكتب حسب الاسم أو المؤلف...'
                   : 'Filter books by name or author...'
               }
-              className="w-full md:w-80 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="flex-1 min-w-0 md:flex-none md:w-80 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               dir="auto"
             />
+
+            {/* Sort Controls */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {language === 'ar' ? 'ترتيب:' : 'Sort:'}
+              </span>
+              {([
+                { value: 'title' as SortBy, label: language === 'ar' ? 'العنوان' : 'Title' },
+                { value: 'author' as SortBy, label: language === 'ar' ? 'المؤلف' : 'Author' },
+                { value: 'pages' as SortBy, label: language === 'ar' ? 'الصفحات' : 'Pages' },
+              ]).map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => handleSortChange(value)}
+                  className={`px-2.5 py-1 text-sm rounded-md transition-colors flex items-center gap-1 ${
+                    sortBy === value
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {label}
+                  {sortBy === value && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className={`w-3.5 h-3.5 transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>
@@ -220,22 +308,31 @@ export default function Home() {
               Retry
             </button>
           </div>
-        ) : filteredBooks.length === 0 ? (
+        ) : filteredAndSortedBooks.length === 0 ? (
           <div className="text-center py-20 text-gray-500 dark:text-gray-400">
             {language === 'ar' ? 'لا توجد كتب مطابقة' : 'No matching books found'}
           </div>
         ) : (
           <>
-            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-              {language === 'ar'
-                ? `عرض ${filteredBooks.length} كتاب`
-                : `Showing ${filteredBooks.length} books`}
-            </p>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {language === 'ar'
+                  ? `عرض ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedBooks.length)} من ${filteredAndSortedBooks.length} كتاب`
+                  : `Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedBooks.length)} of ${filteredAndSortedBooks.length} books`}
+              </p>
+
+              {/* Page size info */}
+              {totalPages > 1 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {language === 'ar' ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                </p>
+              )}
+            </div>
 
             {/* Grid View */}
             {viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredBooks.map((book) => (
+                {paginatedBooks.map((book) => (
                   <BookCard key={book.id} book={book} language={language} viewMode="grid" />
                 ))}
               </div>
@@ -244,7 +341,7 @@ export default function Home() {
             {/* List View */}
             {viewMode === 'list' && (
               <div className="space-y-3">
-                {filteredBooks.map((book) => (
+                {paginatedBooks.map((book) => (
                   <BookCard key={book.id} book={book} language={language} viewMode="list" />
                 ))}
               </div>
@@ -253,9 +350,77 @@ export default function Home() {
             {/* Compact View */}
             {viewMode === 'compact' && (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
-                {filteredBooks.map((book) => (
+                {paginatedBooks.map((book) => (
                   <BookCard key={book.id} book={book} language={language} viewMode="compact" />
                 ))}
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  {language === 'ar' ? 'الأولى' : 'First'}
+                </button>
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                  </svg>
+                </button>
+
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-10 h-10 text-sm rounded-md ${
+                          currentPage === pageNum
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  {language === 'ar' ? 'الأخيرة' : 'Last'}
+                </button>
               </div>
             )}
           </>

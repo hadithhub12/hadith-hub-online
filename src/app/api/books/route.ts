@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const books = getAllBooks();
+    const books = await getAllBooks();
     return NextResponse.json({ books, total: books.length });
   } catch (error) {
     console.error('Error fetching books:', error);

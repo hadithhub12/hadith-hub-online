@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 
         if (!ftsQuery) continue;
 
-        const results = searchPages(ftsQuery, limit);
+        const results = await searchPages(ftsQuery, limit);
 
         for (const result of results) {
           const key = `${result.page.book_id}-${result.page.volume}-${result.page.page}`;
