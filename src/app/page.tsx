@@ -13,6 +13,57 @@ type SortOrder = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 24;
 
+// Logo Icon
+function LogoIcon({ className = 'w-8 h-8' }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className={className}>
+      <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#8b5cf6" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22" fill="url(#logoGradient)" />
+      <path
+        d="M14 12h20c1.1 0 2 .9 2 2v20c0 1.1-.9 2-2 2H14c-1.1 0-2-.9-2-2V14c0-1.1.9-2 2-2z"
+        fill="none"
+        stroke="white"
+        strokeWidth="1.5"
+      />
+      <path d="M17 18h14M17 24h14M17 30h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="36" cy="36" r="8" fill="#10b981" />
+      <path d="M33 36l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Book Icon for stats
+function BookIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    </svg>
+  );
+}
+
+// Filter Icon
+function FilterIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+    </svg>
+  );
+}
+
+// Sort Icon
+function SortIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+    </svg>
+  );
+}
+
 // View mode icons
 function GridIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
@@ -153,28 +204,33 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {language === 'ar' ? 'مركز الحديث أونلاين' : 'Hadith Hub Online'}
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {language === 'ar'
-                  ? `${books.length} كتاب متاح`
-                  : `${books.length} books available`}
-              </p>
-            </div>
+          {/* Top Bar with Logo and Controls */}
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
+              <LogoIcon className="w-10 h-10" />
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                  {language === 'ar' ? 'مركز الحديث أونلاين' : 'Hadith Hub Online'}
+                </h1>
+                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                  <BookIcon className="w-3.5 h-3.5" />
+                  {language === 'ar'
+                    ? `${books.length.toLocaleString()} كتاب متاح`
+                    : `${books.length.toLocaleString()} books available`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <ThemeToggle />
               <LanguageToggle language={language} onChange={handleLanguageChange} />
             </div>
           </div>
 
-          {/* Search */}
+          {/* Search Bar */}
           <div className="mt-4">
             <SearchBar
               placeholder={
@@ -186,40 +242,43 @@ export default function Home() {
             />
           </div>
 
-          {/* Filters and View Toggle */}
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          {/* Filters and Controls Row */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             {/* Sect Filters */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                <FilterIcon className="w-4 h-4" />
                 {language === 'ar' ? 'تصفية:' : 'Filter:'}
               </span>
-              {(['all', 'shia', 'sunni'] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                    filter === f
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {f === 'all'
-                    ? language === 'ar'
-                      ? 'الكل'
-                      : 'All'
-                    : f === 'shia'
-                    ? language === 'ar'
-                      ? 'الشيعة'
-                      : 'Shia'
-                    : language === 'ar'
-                    ? 'السنة'
-                    : 'Sunni'}
-                </button>
-              ))}
+              <div className="flex items-center bg-gray-100 dark:bg-gray-700/50 rounded-full p-0.5">
+                {(['all', 'shia', 'sunni'] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+                      filter === f
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    {f === 'all'
+                      ? language === 'ar'
+                        ? 'الكل'
+                        : 'All'
+                      : f === 'shia'
+                      ? language === 'ar'
+                        ? 'الشيعة'
+                        : 'Shia'
+                      : language === 'ar'
+                      ? 'السنة'
+                      : 'Sunni'}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg p-1">
               {([
                 { mode: 'grid' as ViewMode, icon: GridIcon, label: language === 'ar' ? 'شبكة' : 'Grid' },
                 { mode: 'list' as ViewMode, icon: ListIcon, label: language === 'ar' ? 'قائمة' : 'List' },
@@ -229,7 +288,7 @@ export default function Home() {
                   key={mode}
                   onClick={() => handleViewModeChange(mode)}
                   title={label}
-                  className={`p-2 rounded-md transition-colors ${
+                  className={`p-2 rounded-md transition-all duration-200 ${
                     viewMode === mode
                       ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
@@ -241,55 +300,64 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Quick local filter and sort controls */}
-          <div className="mt-3 flex flex-wrap items-center gap-4">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                language === 'ar'
-                  ? 'تصفية الكتب حسب الاسم أو المؤلف...'
-                  : 'Filter books by name or author...'
-              }
-              className="flex-1 min-w-0 md:flex-none md:w-80 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              dir="auto"
-            />
+          {/* Quick Filter and Sort Row */}
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            {/* Quick Filter Input */}
+            <div className="relative flex-1 min-w-0 md:flex-none md:w-80">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={
+                  language === 'ar'
+                    ? 'تصفية الكتب حسب الاسم أو المؤلف...'
+                    : 'Filter books by name or author...'
+                }
+                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:text-white transition-all"
+                dir="auto"
+              />
+            </div>
 
             {/* Sort Controls */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                <SortIcon className="w-4 h-4" />
                 {language === 'ar' ? 'ترتيب:' : 'Sort:'}
               </span>
-              {([
-                { value: 'title' as SortBy, label: language === 'ar' ? 'العنوان' : 'Title' },
-                { value: 'author' as SortBy, label: language === 'ar' ? 'المؤلف' : 'Author' },
-                { value: 'pages' as SortBy, label: language === 'ar' ? 'الصفحات' : 'Pages' },
-              ]).map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => handleSortChange(value)}
-                  className={`px-2.5 py-1 text-sm rounded-md transition-colors flex items-center gap-1 ${
-                    sortBy === value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {label}
-                  {sortBy === value && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className={`w-3.5 h-3.5 transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-                    </svg>
-                  )}
-                </button>
-              ))}
+              <div className="flex items-center bg-gray-100 dark:bg-gray-700/50 rounded-lg p-0.5">
+                {([
+                  { value: 'title' as SortBy, label: language === 'ar' ? 'العنوان' : 'Title' },
+                  { value: 'author' as SortBy, label: language === 'ar' ? 'المؤلف' : 'Author' },
+                  { value: 'pages' as SortBy, label: language === 'ar' ? 'الصفحات' : 'Pages' },
+                ]).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => handleSortChange(value)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-1 ${
+                      sortBy === value
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    {label}
+                    {sortBy === value && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className={`w-3.5 h-3.5 transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -298,22 +366,43 @@ export default function Home() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-900 rounded-full"></div>
+              <div className="absolute top-0 w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 animate-pulse">
+              {language === 'ar' ? 'جاري تحميل الكتب...' : 'Loading books...'}
+            </p>
           </div>
         ) : error ? (
           <div className="text-center py-20">
-            <p className="text-red-500 dark:text-red-400">{error}</p>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-red-500">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+            <p className="text-red-500 dark:text-red-400 font-medium">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="mt-4 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-lg shadow-blue-500/25 transition-all"
             >
-              Retry
+              {language === 'ar' ? 'إعادة المحاولة' : 'Retry'}
             </button>
           </div>
         ) : filteredAndSortedBooks.length === 0 ? (
-          <div className="text-center py-20 text-gray-500 dark:text-gray-400">
-            {language === 'ar' ? 'لا توجد كتب مطابقة' : 'No matching books found'}
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">
+              {language === 'ar' ? 'لا توجد كتب مطابقة' : 'No matching books found'}
+            </p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              {language === 'ar' ? 'جرب تغيير معايير البحث' : 'Try adjusting your search criteria'}
+            </p>
           </div>
         ) : (
           <>
@@ -431,13 +520,21 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-6 mt-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>
-            {language === 'ar'
-              ? 'مركز الحديث أونلاين - جميع الحقوق محفوظة'
-              : 'Hadith Hub Online - All rights reserved'}
-          </p>
+      <footer className="border-t border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm py-8 mt-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <LogoIcon className="w-6 h-6" />
+              <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                {language === 'ar' ? 'مركز الحديث أونلاين' : 'Hadith Hub Online'}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {language === 'ar'
+                ? 'جميع الحقوق محفوظة'
+                : 'All rights reserved'}
+            </p>
+          </div>
         </div>
       </footer>
     </div>
