@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Amiri } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const amiri = Amiri({
   weight: ['400', '700'],
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${amiri.variable} antialiased`} suppressHydrationWarning>
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import ShareButton from '@/components/ShareButton';
+import ThemeToggle from '@/components/ThemeToggle';
 import type { SearchResult } from '@/lib/types';
 
 type SearchMode = 'word' | 'root' | 'exact';
@@ -210,42 +211,36 @@ function SearchContent() {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-4">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mb-4"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4 mr-1"
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href="/"
+              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-              />
-            </svg>
-            {language === 'ar' ? 'العودة للرئيسية' : 'Back to library'}
-          </Link>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-4 h-4 mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
+              </svg>
+              {language === 'ar' ? 'العودة للرئيسية' : 'Back to library'}
+            </Link>
+            <ThemeToggle />
+          </div>
 
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             {language === 'ar' ? 'البحث المتقدم' : 'Advanced Search'}
           </h1>
 
-          <SearchBar
-            initialQuery={query}
-            placeholder={
-              language === 'ar'
-                ? 'ابحث في الحديث... (عربي أو إنجليزي)'
-                : 'Search hadith... (Arabic or English)'
-            }
-          />
-
-          {/* Search Mode Options */}
-          <div className="mt-4 flex flex-wrap items-center gap-4">
+          {/* Search Mode Options - BEFORE the search bar */}
+          <div className="mb-4 flex flex-wrap items-center gap-4">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {language === 'ar' ? 'نوع البحث:' : 'Search type:'}
             </span>
@@ -270,6 +265,15 @@ function SearchContent() {
               ))}
             </div>
           </div>
+
+          <SearchBar
+            initialQuery={query}
+            placeholder={
+              language === 'ar'
+                ? 'ابحث في الحديث... (عربي أو إنجليزي)'
+                : 'Search hadith... (Arabic or English)'
+            }
+          />
 
           {query && !loading && (
             <div className="mt-4 flex flex-wrap items-center justify-between gap-4">

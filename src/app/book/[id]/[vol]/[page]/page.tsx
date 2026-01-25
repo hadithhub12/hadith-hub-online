@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import PageReader from '@/components/PageReader';
 import ShareButton from '@/components/ShareButton';
+import ThemeToggle from '@/components/ThemeToggle';
 import type { Book, Page } from '@/lib/types';
 
 interface Navigation {
@@ -130,6 +131,7 @@ export default function ReaderPage({
                 </button>
               </form>
 
+              <ThemeToggle />
               <ShareButton url={currentUrl} title={`${title} - ${language === 'ar' ? `صفحة ${pageNum}` : `Page ${pageNum}`}`} />
             </div>
           </div>

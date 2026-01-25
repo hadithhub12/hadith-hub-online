@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import ShareButton from '@/components/ShareButton';
+import ThemeToggle from '@/components/ThemeToggle';
 import type { Book } from '@/lib/types';
 
 interface Volume {
@@ -138,7 +139,10 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
                 )}
               </div>
             </div>
-            <ShareButton url={`/book/${id}`} title={title} />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <ShareButton url={`/book/${id}`} title={title} />
+            </div>
           </div>
         </div>
       </header>

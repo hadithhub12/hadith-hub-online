@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
 import LanguageToggle from '@/components/LanguageToggle';
+import ThemeToggle from '@/components/ThemeToggle';
 import type { Book } from '@/lib/types';
 
 type ViewMode = 'grid' | 'list' | 'compact';
@@ -168,6 +169,7 @@ export default function Home() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <LanguageToggle language={language} onChange={handleLanguageChange} />
             </div>
           </div>
