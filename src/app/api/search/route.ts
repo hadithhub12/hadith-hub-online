@@ -5,11 +5,87 @@ import type { SearchResult } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
+type SearchMode = 'word' | 'root' | 'exact';
+
+// Arabic root extraction - removes common prefixes/suffixes to find the root
+function extractArabicRoot(word: string): string[] {
+  const roots: string[] = [word];
+
+  // Common Arabic prefixes
+  const prefixes = ['ال', 'و', 'ف', 'ب', 'ك', 'ل', 'لل', 'وال', 'فال', 'بال', 'كال'];
+  // Common Arabic suffixes
+  const suffixes = ['ة', 'ه', 'ها', 'هم', 'هن', 'ك', 'كم', 'كن', 'ي', 'نا', 'ون', 'ين', 'ات', 'ان', 'تين', 'تان'];
+
+  let base = word;
+
+  // Remove prefixes
+  for (const prefix of prefixes) {
+    if (base.startsWith(prefix) && base.length > prefix.length + 2) {
+      const stripped = base.slice(prefix.length);
+      if (!roots.includes(stripped)) roots.push(stripped);
+    }
+  }
+
+  // Remove suffixes
+  for (const suffix of suffixes) {
+    if (base.endsWith(suffix) && base.length > suffix.length + 2) {
+      const stripped = base.slice(0, -suffix.length);
+      if (!roots.includes(stripped)) roots.push(stripped);
+    }
+  }
+
+  // Try removing both prefix and suffix
+  for (const prefix of prefixes) {
+    if (base.startsWith(prefix)) {
+      const withoutPrefix = base.slice(prefix.length);
+      for (const suffix of suffixes) {
+        if (withoutPrefix.endsWith(suffix) && withoutPrefix.length > suffix.length + 2) {
+          const stripped = withoutPrefix.slice(0, -suffix.length);
+          if (!roots.includes(stripped)) roots.push(stripped);
+        }
+      }
+    }
+  }
+
+  return roots;
+}
+
+// Build FTS5 query based on search mode
+function buildFtsQuery(searchTerms: string[], mode: SearchMode): string {
+  switch (mode) {
+    case 'exact':
+      // Exact phrase match - wrap entire phrase in quotes
+      const phrase = searchTerms.join(' ').replace(/"/g, '""');
+      return `"${phrase}"`;
+
+    case 'root':
+      // Root search - extract roots and search for all variations
+      const rootVariations: string[] = [];
+      for (const term of searchTerms) {
+        const roots = extractArabicRoot(term);
+        rootVariations.push(...roots);
+      }
+      // Use prefix matching (*) to find words containing the root
+      return rootVariations
+        .map(root => `"${root.replace(/"/g, '""')}"*`)
+        .join(' OR ');
+
+    case 'word':
+    default:
+      // Word search - match any of the words (current behavior)
+      return searchTerms
+        .filter(term => term.length > 0)
+        .map(term => `"${term.replace(/"/g, '""')}"`)
+        .join(' OR ');
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
     const lang = searchParams.get('lang') || 'ar';
+    const mode = (searchParams.get('mode') || 'word') as SearchMode;
     const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 500);
 
     if (!query.trim()) {
@@ -17,6 +93,7 @@ export async function GET(request: Request) {
         query: '',
         total: 0,
         results: [],
+        mode,
       });
     }
 
@@ -28,6 +105,7 @@ export async function GET(request: Request) {
         query,
         total: 0,
         results: [],
+        mode,
       });
     }
 
@@ -36,12 +114,15 @@ export async function GET(request: Request) {
 
     for (const searchQuery of searchQueries) {
       try {
-        // Escape special FTS5 characters and format query
-        const ftsQuery = searchQuery
+        // Split into terms
+        const terms = searchQuery
           .split(/\s+/)
-          .filter(term => term.length > 0)
-          .map(term => `"${term.replace(/"/g, '""')}"`)
-          .join(' OR ');
+          .filter(term => term.length > 0);
+
+        if (terms.length === 0) continue;
+
+        // Build FTS query based on mode
+        const ftsQuery = buildFtsQuery(terms, mode);
 
         if (!ftsQuery) continue;
 
@@ -77,6 +158,7 @@ export async function GET(request: Request) {
       query,
       total: results.length,
       results,
+      mode,
       transliterated: wasTransliterated,
       searchTerms: searchQueries.slice(0, 3), // Show what was actually searched
     });
