@@ -29,15 +29,22 @@ export default function PageReader({ text, highlight, className = '' }: PageRead
       }
     }
 
-    // Convert newlines to <br> tags for proper line breaks
-    // Also convert double newlines to paragraph breaks
-    result = result
-      .replace(/\n\n+/g, '</p><p class="mt-4">')  // Double newlines become paragraph breaks
-      .replace(/\n/g, '<br />');  // Single newlines become line breaks
+    // Process paragraphs and line breaks
+    // Split by double newlines to create paragraph blocks
+    const paragraphs = result.split(/\n\n+/);
 
-    // Wrap in paragraph if we have paragraph breaks
-    if (result.includes('</p><p')) {
-      result = '<p>' + result + '</p>';
+    if (paragraphs.length > 1) {
+      // Multiple paragraphs - wrap each in a paragraph tag with proper spacing
+      result = paragraphs
+        .map((p, i) => {
+          // Convert single newlines within paragraph to line breaks
+          const content = p.replace(/\n/g, '<br />');
+          return `<p class="page-paragraph">${content}</p>`;
+        })
+        .join('');
+    } else {
+      // Single paragraph - just convert newlines to line breaks
+      result = result.replace(/\n/g, '<br />');
     }
 
     return result;
@@ -45,11 +52,8 @@ export default function PageReader({ text, highlight, className = '' }: PageRead
 
   return (
     <div
-      className={`arabic-text text-xl leading-loose ${className}`}
+      className={`page-reader arabic-text ${className}`}
       dangerouslySetInnerHTML={{ __html: processedText }}
-      style={{
-        fontFamily: 'var(--font-amiri), Amiri, Traditional Arabic, serif',
-      }}
     />
   );
 }

@@ -49,14 +49,42 @@ body {
   font-family: var(--font-amiri), 'Amiri', 'Traditional Arabic', serif;
   direction: rtl;
   text-align: right;
-  line-height: 2;
+  line-height: 2.2;
+}
+
+/* Page reader styling */
+.page-reader {
+  font-size: 1.25rem;
+  line-height: 2.4;
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
+}
+
+/* Paragraph styling within page reader */
+.page-reader .page-paragraph {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-reader .page-paragraph:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* First line indent for paragraphs */
+.page-reader .page-paragraph:not(:first-child) {
+  text-indent: 1.5rem;
 }
 
 /* Highlight styling */
 mark, .highlight {
   background-color: var(--highlight);
-  padding: 0 2px;
-  border-radius: 2px;
+  padding: 0.1em 0.2em;
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 /* Custom scrollbar */
