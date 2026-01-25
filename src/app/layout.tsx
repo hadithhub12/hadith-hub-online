@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Amiri, Scheherazade_New, Noto_Naskh_Arabic, Noto_Nastaliq_Urdu, Lateef } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { FontProvider } from "@/context/FontContext";
 
 const amiri = Amiri({
   weight: ['400', '700'],
@@ -50,7 +51,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
-          {children}
+          <FontProvider>
+            {children}
+          </FontProvider>
         </ThemeProvider>
       </body>
     </html>

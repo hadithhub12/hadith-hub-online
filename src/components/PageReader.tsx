@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import { linkQuranVerses } from '@/lib/quran-detector';
 import { processFootnoteLinks } from '@/lib/book-linker';
-
-import type { ArabicFont } from './FontSelector';
+import { useFont, type ArabicFont, FONT_SIZES } from '@/context/FontContext';
 
 interface PageReaderProps {
   text: string;
@@ -171,7 +170,11 @@ function formatBiharAlAnwarText(text: string): string {
   return result;
 }
 
-export default function PageReader({ text, highlight, className = '', bookId, font = 'amiri', footnotes }: PageReaderProps) {
+export default function PageReader({ text, highlight, className = '', bookId, font: fontProp, footnotes }: PageReaderProps) {
+  // Get font settings from context
+  const { font: contextFont, fontSize, currentFontSize } = useFont();
+  const font = fontProp || contextFont;
+
   // Parse footnotes from JSON string
   const parsedFootnotes = useMemo(() => {
     if (!footnotes) return [];
@@ -221,14 +224,21 @@ export default function PageReader({ text, highlight, className = '', bookId, fo
 
   const fontClass = `font-${font}`;
 
+  // Calculate font size based on scale
+  const fontSizeStyle = {
+    fontSize: `${currentFontSize.scale * 1.25}rem`,
+    lineHeight: currentFontSize.scale > 1 ? '2.4' : '2.2',
+  };
+
   return (
     <div className={`page-reader-container ${className}`}>
       <div
         className={`page-reader arabic-text ${fontClass} ${isBiharAlAnwar(bookId) ? 'bihar-anwar' : ''}`}
+        style={fontSizeStyle}
         dangerouslySetInnerHTML={{ __html: processedText }}
       />
       {parsedFootnotes.length > 0 && (
-        <div className={`footnotes-section arabic-text ${fontClass}`}>
+        <div className={`footnotes-section arabic-text ${fontClass}`} style={{ fontSize: `${currentFontSize.scale * 0.9}rem` }}>
           <div className="footnotes-divider" />
           <div className="footnotes-title">الحواشي</div>
           <div className="footnotes-list">
