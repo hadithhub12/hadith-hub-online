@@ -182,6 +182,7 @@ export default function Home() {
                   ? 'ابحث في الحديث... (عربي أو إنجليزي)'
                   : 'Search hadith... (Arabic or English)'
               }
+              language={language}
             />
           </div>
 
