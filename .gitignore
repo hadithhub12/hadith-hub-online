@@ -40,11 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Large database files (uncompressed)
+# Large database files (local development only - production uses Turso)
 src/data/*.db
 src/data/*.db-shm
 src/data/*.db-wal
-# Note: src/data/*.gz is tracked with Git LFS
+src/data/*.gz
 
 # Build scripts output
 scripts/book-names-mapping.json
