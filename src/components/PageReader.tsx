@@ -61,11 +61,12 @@ function isBiharAlAnwar(bookId?: string): boolean {
 function formatBiharAlAnwarText(text: string): string {
   let result = text;
 
-  // 1. Format book/section titles in brackets - cyan color
-  // Matches: [تتمة كتاب الإمامة] or [معاني الأخبار]
+  // 1. Format main book/section titles at start of page - centered cyan
+  // Only match titles at the very beginning or after newlines that are standalone
+  // Matches: [تتمة كتاب الإمامة] at start of text
   result = result.replace(
-    /\[([^\]]+)\]/g,
-    '<span class="hadith-book-title">[$1]</span>'
+    /^(\[تتمة[^\]]+\])/gm,
+    '<div class="hadith-book-title">$1</div>'
   );
 
   // 2. Format "أبواب" section headers - orange color
@@ -75,70 +76,70 @@ function formatBiharAlAnwarText(text: string): string {
     '<div class="hadith-section-header">$1</div>'
   );
 
-  // 3. Format "باب" chapter headers - white/light with number
+  // 3. Format "باب" chapter headers - dark/light with number
   // Matches: باب 1 بدو أرواحهم...
   result = result.replace(
     /^(باب\s+\d+\s+[^\n]+)/gm,
     '<div class="hadith-chapter-header">$1</div>'
   );
 
-  // 4. Format hadith numbers at start of line with source abbreviation
-  // Matches: 1 - مع،، or 2 - ختص،،
-  // The pattern: number - abbreviation،، [full source name]
+  // 4. Format hadith numbers at start of line with source abbreviation and full source name
+  // Matches: 1 - مع،، [معاني الأخبار]،
+  // The pattern: number - abbreviation،، [full source name]،
   result = result.replace(
-    /^(\d+)\s*-\s*([^،\s]+)،،/gm,
-    '<span class="hadith-number-badge">$1</span> <span class="hadith-source-abbrev">$2</span>'
+    /^(\d+)\s*-\s*([^،\s]+)،،\s*(\[[^\]]+\])،/gm,
+    '<span class="hadith-number-badge">$1</span> <span class="hadith-source-abbrev">$2</span> <span class="hadith-source-ref">$3</span>،'
   );
 
-  // 5. Format inline source references without number
-  // Matches: فس، [تفسير القمي]
+  // 5. Format hadith numbers with source but no brackets
+  // Matches: 1 - مع،،
   result = result.replace(
-    /([^>\d\s])([،\s]+)([^\s،]+)،\s*(\[)/g,
-    '$1$2<span class="hadith-source-abbrev">$3</span> $4'
+    /^(\d+)\s*-\s*([^،\s]+)،،(?!\s*\[)/gm,
+    '<span class="hadith-number-badge">$1</span> <span class="hadith-source-abbrev">$2</span>،'
   );
 
-  // 6. Format "بيان:" explanatory sections - different styling
+  // 6. Format inline source references (secondary sources within text)
+  // Matches: فس، [تفسير القمي]،
+  result = result.replace(
+    /\n([^\s\d][^،\n]*)،\s*(\[[^\]]+\])،/g,
+    '\n<span class="hadith-source-abbrev">$1</span>، <span class="hadith-source-ref">$2</span>،'
+  );
+
+  // 7. Format "بيان:" explanatory sections - different styling
   result = result.replace(
     /(بيان)(:?\s*)/g,
     '<span class="hadith-explanation-label">$1</span>$2'
   );
 
-  // 7. Format chain of narrators (sanad) - gray color
-  // Detect patterns like: عَنْ X عَنْ Y عَنْ Z قَالَ:
-  // This is a simplified approach - look for عن patterns before قال
+  // 8. Format book references at start of hadith
+  // Matches: 3 - كِتَابُ فَضَائِلِ الشِّيعَةِ، لِلصَّدُوقِ
   result = result.replace(
-    /((?:عَنْ|عَنِ|عن)\s+[^:]+?)(قَالَ|قَالَ‌|قال)(:|\s*:)/g,
-    '<span class="hadith-sanad">$1</span><span class="hadith-qala">$2</span>$3'
-  );
-
-  // 8. Format narrator chains with بِإِسْنَادِهِ
-  result = result.replace(
-    /(بِإِسْنَادِهِ\s+(?:عَنْ|عَنِ|عن)\s+[^:]+?)(قَالَ|قَالَ‌|قال)(:|\s*:)/g,
-    '<span class="hadith-sanad">$1</span><span class="hadith-qala">$2</span>$3'
-  );
-
-  // 9. Format book references at start of hadith
-  // Matches: كِتَابُ فَضَائِلِ الشِّيعَةِ، لِلصَّدُوقِ
-  result = result.replace(
-    /^(\d+)\s*-\s*(كِتَابُ\s+[^،]+،\s*لِ[^\s]+)/gm,
+    /^(\d+)\s*-\s*(كِتَابُ\s+[^،]+،\s*لِ[^\s،]+)/gm,
     '<span class="hadith-number-badge">$1</span> <span class="hadith-book-ref">$2</span>'
   );
 
-  // 10. Format "وَ مِنْ كِتَابِ" or "وَ مِمَّا رَوَاهُ مِنْ كِتَابِ" references
+  // 9. Format "وَ مِنْ كِتَابِ" or "وَ مِمَّا رَوَاهُ" references
   result = result.replace(
     /^(\d+)\s*-\s*(وَ\s+مِنْ\s+كِتَابِ\s+[^،]+،)/gm,
     '<span class="hadith-number-badge">$1</span> <span class="hadith-book-ref">$2</span>'
   );
 
   result = result.replace(
-    /^(\d+)\s*-\s*(وَ\s+مِمَّا\s+رَوَاهُ\s+مِنْ\s+كِتَابِ\s+[^،]+،)/gm,
+    /^(\d+)\s*-\s*(وَ\s+مِمَّا\s+رَوَاهُ[^،]+،)/gm,
     '<span class="hadith-number-badge">$1</span> <span class="hadith-book-ref">$2</span>'
   );
 
-  // 11. Format standalone hadith numbers that weren't caught
+  // 10. Format standalone hadith numbers that weren't caught
   result = result.replace(
     /^(\d+)\s*-\s*(?!<span)/gm,
     '<span class="hadith-number-badge">$1</span> '
+  );
+
+  // 11. Format remaining source references in brackets (inline, not titles)
+  // These are source names within hadith text
+  result = result.replace(
+    /(\[[^\]]+\])(?!<\/)/g,
+    '<span class="hadith-source-ref">$1</span>'
   );
 
   return result;
