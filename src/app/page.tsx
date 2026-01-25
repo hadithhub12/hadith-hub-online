@@ -160,7 +160,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {language === 'ar' ? 'مكتبة الحديث' : 'Hadith Library'}
+                {language === 'ar' ? 'مركز الحديث أونلاين' : 'Hadith Hub Online'}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {language === 'ar'
@@ -435,8 +435,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>
             {language === 'ar'
-              ? 'مكتبة الحديث - جميع الحقوق محفوظة'
-              : 'Hadith Library - All rights reserved'}
+              ? 'مركز الحديث أونلاين - جميع الحقوق محفوظة'
+              : 'Hadith Hub Online - All rights reserved'}
           </p>
         </div>
       </footer>

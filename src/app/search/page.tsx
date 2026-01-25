@@ -312,8 +312,8 @@ function SearchResultsContent({ query, searchMode, language }: { query: string; 
       <div className="text-center py-20 text-gray-500 dark:text-gray-400">
         <p className="text-lg">
           {language === 'ar'
-            ? 'أدخل كلمة للبحث في مكتبة الحديث'
-            : 'Enter a term to search the hadith library'}
+            ? 'أدخل كلمة للبحث في مركز الحديث'
+            : 'Enter a term to search Hadith Hub'}
         </p>
         <p className="mt-2 text-sm">
           {language === 'ar'

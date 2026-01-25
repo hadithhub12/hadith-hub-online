@@ -10,7 +10,7 @@ const amiri = Amiri({
 });
 
 export const metadata: Metadata = {
-  title: "Hadith Library",
+  title: "Hadith Hub Online",
   description: "Search and browse hadith collections in Arabic and English",
 };
 
