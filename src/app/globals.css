@@ -336,6 +336,20 @@ mark, .highlight {
   color: #d1d5db;
 }
 
+/* Footnote markers in text - cyan superscript */
+.footnote-marker {
+  color: #0891b2;
+  font-size: 0.75em;
+  vertical-align: super;
+  font-weight: 600;
+  padding: 0 0.1em;
+  cursor: default;
+}
+
+.dark .footnote-marker {
+  color: #22d3ee;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

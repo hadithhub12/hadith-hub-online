@@ -102,13 +102,25 @@ export async function getBookVolumes(bookId: string): Promise<{ volume: number; 
 export async function getPage(bookId: string, volume: number, page: number): Promise<Page | undefined> {
   if (useTurso) {
     const client = getTursoClient();
-    const result = await client.execute({
-      sql: `SELECT id, book_id, volume, page, text, text_normalized, footnotes
-            FROM pages
-            WHERE book_id = ? AND volume = ? AND page = ?`,
-      args: [bookId, volume, page],
-    });
-    return result.rows[0] as unknown as Page | undefined;
+    // Try with footnotes column first, fall back to without if column doesn't exist
+    try {
+      const result = await client.execute({
+        sql: `SELECT id, book_id, volume, page, text, text_normalized, footnotes
+              FROM pages
+              WHERE book_id = ? AND volume = ? AND page = ?`,
+        args: [bookId, volume, page],
+      });
+      return result.rows[0] as unknown as Page | undefined;
+    } catch (error) {
+      // Fallback: footnotes column might not exist yet in Turso
+      const result = await client.execute({
+        sql: `SELECT id, book_id, volume, page, text, text_normalized, NULL as footnotes
+              FROM pages
+              WHERE book_id = ? AND volume = ? AND page = ?`,
+        args: [bookId, volume, page],
+      });
+      return result.rows[0] as unknown as Page | undefined;
+    }
   } else {
     const db = getSqliteDb();
     return db.prepare(`

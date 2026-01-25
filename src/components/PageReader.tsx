@@ -161,6 +161,12 @@ function formatBiharAlAnwarText(text: string): string {
     '<span class="hadith-sanad">$1</span>$2$3'
   );
 
+  // 13. Format footnote markers 【١】 to styled superscript spans
+  result = result.replace(
+    /【([٠-٩]+)】/g,
+    '<span class="footnote-marker">($1)</span>'
+  );
+
   return result;
 }
 
