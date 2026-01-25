@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ShareButton from '@/components/ShareButton';
@@ -136,33 +136,6 @@ function SearchHeader({
           {language === 'ar' ? 'البحث المتقدم' : 'Advanced Search'}
         </h1>
 
-        {/* Search Mode Options - ALWAYS VISIBLE */}
-        <div className="mb-4 flex flex-wrap items-center gap-4">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {language === 'ar' ? 'نوع البحث:' : 'Search type:'}
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {([
-              { mode: 'word' as SearchMode, labelAr: 'كلمة', labelEn: 'Word', descAr: 'البحث عن الكلمة', descEn: 'Match any word' },
-              { mode: 'root' as SearchMode, labelAr: 'جذر', labelEn: 'Root', descAr: 'البحث عن الجذر', descEn: 'Match word roots' },
-              { mode: 'exact' as SearchMode, labelAr: 'عبارة', labelEn: 'Exact', descAr: 'البحث عن العبارة بالضبط', descEn: 'Match exact phrase' },
-            ]).map(({ mode, labelAr, labelEn, descAr, descEn }) => (
-              <button
-                key={mode}
-                onClick={() => onModeChange(mode)}
-                title={language === 'ar' ? descAr : descEn}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  searchMode === mode
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                {language === 'ar' ? labelAr : labelEn}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Search Input */}
         <form onSubmit={handleSubmit} className="relative">
           <input
@@ -197,6 +170,33 @@ function SearchHeader({
             </svg>
           </button>
         </form>
+
+        {/* Search Mode Options - Below Search Input */}
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {language === 'ar' ? 'نوع البحث:' : 'Search type:'}
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { mode: 'exact' as SearchMode, labelAr: 'عبارة', labelEn: 'Exact', descAr: 'البحث عن العبارة بالضبط', descEn: 'Match exact phrase' },
+              { mode: 'word' as SearchMode, labelAr: 'كلمة', labelEn: 'Word', descAr: 'البحث عن الكلمة', descEn: 'Match any word' },
+              { mode: 'root' as SearchMode, labelAr: 'جذر', labelEn: 'Root', descAr: 'البحث عن الجذر', descEn: 'Match word roots' },
+            ]).map(({ mode, labelAr, labelEn, descAr, descEn }) => (
+              <button
+                key={mode}
+                onClick={() => onModeChange(mode)}
+                title={language === 'ar' ? descAr : descEn}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  searchMode === mode
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                {language === 'ar' ? labelAr : labelEn}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </header>
   );
@@ -559,14 +559,14 @@ function SearchResultsContent({ query, searchMode, language }: { query: string; 
   );
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialQuery = searchParams.get('q') || '';
   const modeParam = searchParams.get('mode') as SearchMode | null;
 
   const [query, setQuery] = useState(initialQuery);
-  const [searchMode, setSearchMode] = useState<SearchMode>(modeParam || 'word');
+  const [searchMode, setSearchMode] = useState<SearchMode>(modeParam || 'exact');
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
 
   useEffect(() => {
@@ -616,5 +616,101 @@ export default function SearchPage() {
         />
       </main>
     </div>
+  );
+}
+
+function SearchLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href="/"
+              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-4 h-4 mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
+              </svg>
+              Back to library
+            </Link>
+            <ThemeToggle />
+          </div>
+
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Advanced Search
+          </h1>
+
+          {/* Search Input */}
+          <div className="relative">
+            <input
+              type="text"
+              disabled
+              placeholder="Search hadith... (Arabic or English)"
+              className="w-full px-4 py-3 pr-12 text-lg border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 dark:text-white"
+              dir="auto"
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 dark:text-gray-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Search Mode Options - Below Search Input */}
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Search type:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white">
+                Exact
+              </span>
+              <span className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                Word
+              </span>
+              <span className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                Root
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main className="max-w-5xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<SearchLoadingFallback />}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
