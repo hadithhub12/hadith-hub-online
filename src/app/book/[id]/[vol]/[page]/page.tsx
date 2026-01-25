@@ -26,6 +26,7 @@ export default function ReaderPage({
   const [pageData, setPageData] = useState<Page | null>(null);
   const [book, setBook] = useState<Book | null>(null);
   const [navigation, setNavigation] = useState<Navigation | null>(null);
+  const [totalPages, setTotalPages] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
@@ -49,6 +50,7 @@ export default function ReaderPage({
         setPageData(data.page);
         setBook(data.book);
         setNavigation(data.navigation);
+        setTotalPages(data.totalPages || 0);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load page');
       } finally {
@@ -188,8 +190,8 @@ export default function ReaderPage({
 
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400 px-3 py-1.5 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
               {language === 'ar'
-                ? `المجلد ${vol} - صفحة ${pageNum}`
-                : `Vol. ${vol} - Page ${pageNum}`}
+                ? `المجلد ${vol} - صفحة ${pageNum}${totalPages ? ` / ${totalPages}` : ''}`
+                : `Vol. ${vol} - Page ${pageNum}${totalPages ? ` / ${totalPages}` : ''}`}
             </span>
 
             {navigation?.next ? (
@@ -266,7 +268,7 @@ export default function ReaderPage({
           )}
 
           <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl">
-            {vol}:{pageNum}
+            {pageNum}{totalPages ? `/${totalPages}` : ''}
           </span>
 
           {navigation?.next ? (

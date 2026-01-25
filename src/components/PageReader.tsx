@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { linkQuranVerses } from '@/lib/quran-detector';
+import { processFootnoteLinks } from '@/lib/book-linker';
 
 import type { ArabicFont } from './FontSelector';
 
@@ -232,9 +233,11 @@ export default function PageReader({ text, highlight, className = '', bookId, fo
           <div className="footnotes-title">الحواشي</div>
           <div className="footnotes-list">
             {parsedFootnotes.map((footnote, index) => (
-              <div key={index} className="footnote-item">
-                {footnote}
-              </div>
+              <div
+                key={index}
+                className="footnote-item"
+                dangerouslySetInnerHTML={{ __html: processFootnoteLinks(footnote) }}
+              />
             ))}
           </div>
         </div>

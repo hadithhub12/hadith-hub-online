@@ -99,6 +99,23 @@ export async function getBookVolumes(bookId: string): Promise<{ volume: number; 
   }
 }
 
+export async function getVolumeTotalPages(bookId: string, volume: number): Promise<number> {
+  if (useTurso) {
+    const client = getTursoClient();
+    const result = await client.execute({
+      sql: `SELECT MAX(page) as totalPages FROM pages WHERE book_id = ? AND volume = ?`,
+      args: [bookId, volume],
+    });
+    return (result.rows[0]?.totalPages as number) || 0;
+  } else {
+    const db = getSqliteDb();
+    const result = db.prepare(`
+      SELECT MAX(page) as totalPages FROM pages WHERE book_id = ? AND volume = ?
+    `).get(bookId, volume) as { totalPages: number } | undefined;
+    return result?.totalPages || 0;
+  }
+}
+
 export async function getPage(bookId: string, volume: number, page: number): Promise<Page | undefined> {
   if (useTurso) {
     const client = getTursoClient();

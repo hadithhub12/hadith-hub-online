@@ -350,6 +350,28 @@ mark, .highlight {
   color: #22d3ee;
 }
 
+/* Book reference links in footnotes */
+.book-ref-link {
+  color: #7c3aed;
+  text-decoration: none;
+  border-bottom: 1px dotted #7c3aed;
+  transition: all 0.2s ease;
+}
+
+.book-ref-link:hover {
+  color: #6d28d9;
+  border-bottom-style: solid;
+}
+
+.dark .book-ref-link {
+  color: #a78bfa;
+  border-bottom-color: #a78bfa;
+}
+
+.dark .book-ref-link:hover {
+  color: #c4b5fd;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

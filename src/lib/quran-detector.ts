@@ -1,28 +1,35 @@
 import type { QuranReference } from './types';
 
-// Mapping of Arabic surah names to numbers
+// Mapping of Arabic surah names to numbers (includes variants without ال)
 const SURAH_NAMES: Record<string, number> = {
+  // With ال prefix
   'الفاتحة': 1,
   'البقرة': 2,
   'آل عمران': 3,
   'النساء': 4,
   'المائدة': 5,
   'الأنعام': 6,
+  'الانعام': 6,
   'الأعراف': 7,
+  'الاعراف': 7,
   'الأنفال': 8,
+  'الانفال': 8,
   'التوبة': 9,
   'يونس': 10,
   'هود': 11,
   'يوسف': 12,
   'الرعد': 13,
   'إبراهيم': 14,
+  'ابراهيم': 14,
   'الحجر': 15,
   'النحل': 16,
   'الإسراء': 17,
+  'الاسراء': 17,
   'الكهف': 18,
   'مريم': 19,
   'طه': 20,
   'الأنبياء': 21,
+  'الانبياء': 21,
   'الحج': 22,
   'المؤمنون': 23,
   'النور': 24,
@@ -35,6 +42,7 @@ const SURAH_NAMES: Record<string, number> = {
   'لقمان': 31,
   'السجدة': 32,
   'الأحزاب': 33,
+  'الاحزاب': 33,
   'سبأ': 34,
   'فاطر': 35,
   'يس': 36,
@@ -48,6 +56,7 @@ const SURAH_NAMES: Record<string, number> = {
   'الدخان': 44,
   'الجاثية': 45,
   'الأحقاف': 46,
+  'الاحقاف': 46,
   'محمد': 47,
   'الفتح': 48,
   'الحجرات': 49,
@@ -78,6 +87,7 @@ const SURAH_NAMES: Record<string, number> = {
   'المدثر': 74,
   'القيامة': 75,
   'الإنسان': 76,
+  'الانسان': 76,
   'المرسلات': 77,
   'النبأ': 78,
   'النازعات': 79,
@@ -89,6 +99,7 @@ const SURAH_NAMES: Record<string, number> = {
   'البروج': 85,
   'الطارق': 86,
   'الأعلى': 87,
+  'الاعلى': 87,
   'الغاشية': 88,
   'الفجر': 89,
   'البلد': 90,
@@ -114,8 +125,114 @@ const SURAH_NAMES: Record<string, number> = {
   'النصر': 110,
   'المسد': 111,
   'الإخلاص': 112,
+  'الاخلاص': 112,
   'الفلق': 113,
   'الناس': 114,
+  // Without ال prefix (common in footnotes)
+  'فاتحة': 1,
+  'بقرة': 2,
+  'نساء': 4,
+  'مائدة': 5,
+  'انعام': 6,
+  'اعراف': 7,
+  'انفال': 8,
+  'توبة': 9,
+  'رعد': 13,
+  'حجر': 15,
+  'نحل': 16,
+  'اسراء': 17,
+  'كهف': 18,
+  'انبياء': 21,
+  'حج': 22,
+  'مؤمنون': 23,
+  'نور': 24,
+  'فرقان': 25,
+  'شعراء': 26,
+  'نمل': 27,
+  'قصص': 28,
+  'عنكبوت': 29,
+  'روم': 30,
+  'سجدة': 32,
+  'احزاب': 33,
+  'صافات': 37,
+  'زمر': 39,
+  'شورى': 42,
+  'زخرف': 43,
+  'دخان': 44,
+  'جاثية': 45,
+  'احقاف': 46,
+  'فتح': 48,
+  'حجرات': 49,
+  'ذاريات': 51,
+  'طور': 52,
+  'نجم': 53,
+  'قمر': 54,
+  'رحمن': 55,
+  'واقعة': 56,
+  'حديد': 57,
+  'مجادلة': 58,
+  'حشر': 59,
+  'ممتحنة': 60,
+  'صف': 61,
+  'جمعة': 62,
+  'منافقون': 63,
+  'تغابن': 64,
+  'طلاق': 65,
+  'تحريم': 66,
+  'ملك': 67,
+  'قلم': 68,
+  'حاقة': 69,
+  'معارج': 70,
+  'جن': 72,
+  'مزمل': 73,
+  'مدثر': 74,
+  'قيامة': 75,
+  'انسان': 76,
+  'مرسلات': 77,
+  'نازعات': 79,
+  'تكوير': 81,
+  'انفطار': 82,
+  'مطففين': 83,
+  'انشقاق': 84,
+  'بروج': 85,
+  'طارق': 86,
+  'اعلى': 87,
+  'غاشية': 88,
+  'فجر': 89,
+  'بلد': 90,
+  'شمس': 91,
+  'ليل': 92,
+  'ضحى': 93,
+  'شرح': 94,
+  'تين': 95,
+  'علق': 96,
+  'قدر': 97,
+  'بينة': 98,
+  'زلزلة': 99,
+  'عاديات': 100,
+  'قارعة': 101,
+  'تكاثر': 102,
+  'عصر': 103,
+  'همزة': 104,
+  'فيل': 105,
+  'ماعون': 107,
+  'كوثر': 108,
+  'كافرون': 109,
+  'نصر': 110,
+  'مسد': 111,
+  'اخلاص': 112,
+  'فلق': 113,
+  'ناس': 114,
+  // Variants with أ instead of ا
+  'أنعام': 6,
+  'أعراف': 7,
+  'أنفال': 8,
+  'أنبياء': 21,
+  'أحزاب': 33,
+  'أحقاف': 46,
+  'أعلى': 87,
+  // Special: نبأ without ال
+  'نبأ': 78,
 };
 
 // Reverse mapping for display
@@ -263,9 +380,65 @@ export function linkQuranVerses(text: string): string {
     }
   );
 
-  // Pattern 2: (البقرة: 255)
+  // Pattern 2: (البقرة: 255) or البقرة: 255
   result = result.replace(
     /\(([^:()]+):\s*(\d+)(?:\s*-\s*(\d+))?\)/g,
+    (match, surahName, ayah, ayahEnd) => {
+      const surah = SURAH_NAMES[surahName.trim()];
+      if (surah && isValidReference(surah, parseInt(ayah, 10))) {
+        const url = quranComUrl(surah, parseInt(ayah, 10), ayahEnd ? parseInt(ayahEnd, 10) : undefined);
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="quran-link">${match}</a>`;
+      }
+      return match;
+    }
+  );
+
+  // Pattern 3: النساء، الآية: 32 (full surah name + الآية)
+  result = result.replace(
+    /(ال[^\s،,]+)[،,]\s*الآية:\s*(\d+)(?:\s*-\s*(\d+))?/g,
+    (match, surahName, ayah, ayahEnd) => {
+      const surah = SURAH_NAMES[surahName.trim()];
+      if (surah && isValidReference(surah, parseInt(ayah, 10))) {
+        const url = quranComUrl(surah, parseInt(ayah, 10), ayahEnd ? parseInt(ayahEnd, 10) : undefined);
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="quran-link">${match}</a>`;
+      }
+      return match;
+    }
+  );
+
+  // Pattern 4: آل عمران (3):17 - surah name with (chapter):verse
+  result = result.replace(
+    /(آل\s+عمران|[^\s\d()\/:]+)\s*\((\d+)\)\s*:\s*(\d+)(?:\s*-\s*(\d+))?/g,
+    (match, surahName, chapter, ayah, ayahEnd) => {
+      const surah = SURAH_NAMES[surahName.trim()];
+      // Validate that chapter matches expected surah number
+      if (surah && surah === parseInt(chapter, 10) && isValidReference(surah, parseInt(ayah, 10))) {
+        const url = quranComUrl(surah, parseInt(ayah, 10), ayahEnd ? parseInt(ayahEnd, 10) : undefined);
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="quran-link">${match}</a>`;
+      }
+      return match;
+    }
+  );
+
+  // Pattern 5: نساء 24/4 or آل عمران 17/3 - surah name + verse/chapter
+  // This is common in Bihar al-Anwar footnotes
+  result = result.replace(
+    /(آل\s+عمران|[^\s\d()\/:\.]+)\s+(\d+)\/(\d+)(?:\s*-\s*(\d+))?/g,
+    (match, surahName, ayah, chapter, ayahEnd) => {
+      const surah = SURAH_NAMES[surahName.trim()];
+      // Validate that chapter matches expected surah number
+      if (surah && surah === parseInt(chapter, 10) && isValidReference(surah, parseInt(ayah, 10))) {
+        const url = quranComUrl(surah, parseInt(ayah, 10), ayahEnd ? parseInt(ayahEnd, 10) : undefined);
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="quran-link">${match}</a>`;
+      }
+      return match;
+    }
+  );
+
+  // Pattern 6: آل عمران: 18 or الانعام: 115 - surah name + colon + verse (without parentheses)
+  // Common in Bihar footnotes like "و الآية في آل عمران: 18"
+  result = result.replace(
+    /(آل\s+عمران|ال[^\s:]+):\s*(\d+)(?:\s*-\s*(\d+))?/g,
     (match, surahName, ayah, ayahEnd) => {
       const surah = SURAH_NAMES[surahName.trim()];
       if (surah && isValidReference(surah, parseInt(ayah, 10))) {

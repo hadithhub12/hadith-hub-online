@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPage, getBook, getAdjacentPages } from '@/lib/db';
+import { getPage, getBook, getAdjacentPages, getVolumeTotalPages } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,11 +30,13 @@ export async function GET(
 
     const book = await getBook(bookId);
     const navigation = await getAdjacentPages(bookId, volume, page);
+    const totalPages = await getVolumeTotalPages(bookId, volume);
 
     return NextResponse.json({
       page: pageData,
       book,
       navigation,
+      totalPages,
     });
   } catch (error) {
     console.error('Error fetching page:', error);
