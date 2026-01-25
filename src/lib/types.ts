@@ -16,6 +16,7 @@ export interface Page {
   page: number;
   text: string;
   text_normalized: string;
+  footnotes?: string | null; // JSON array of footnotes
 }
 
 export interface SearchResult {

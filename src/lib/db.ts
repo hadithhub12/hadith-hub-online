@@ -103,7 +103,7 @@ export async function getPage(bookId: string, volume: number, page: number): Pro
   if (useTurso) {
     const client = getTursoClient();
     const result = await client.execute({
-      sql: `SELECT id, book_id, volume, page, text, text_normalized
+      sql: `SELECT id, book_id, volume, page, text, text_normalized, footnotes
             FROM pages
             WHERE book_id = ? AND volume = ? AND page = ?`,
       args: [bookId, volume, page],
@@ -112,7 +112,7 @@ export async function getPage(bookId: string, volume: number, page: number): Pro
   } else {
     const db = getSqliteDb();
     return db.prepare(`
-      SELECT id, book_id, volume, page, text, text_normalized
+      SELECT id, book_id, volume, page, text, text_normalized, footnotes
       FROM pages
       WHERE book_id = ? AND volume = ? AND page = ?
     `).get(bookId, volume, page) as Page | undefined;

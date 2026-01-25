@@ -11,6 +11,7 @@ interface PageReaderProps {
   className?: string;
   bookId?: string;
   font?: ArabicFont;
+  footnotes?: string | null; // JSON array of footnotes
 }
 
 function escapeRegex(str: string): string {
@@ -163,7 +164,17 @@ function formatBiharAlAnwarText(text: string): string {
   return result;
 }
 
-export default function PageReader({ text, highlight, className = '', bookId, font = 'amiri' }: PageReaderProps) {
+export default function PageReader({ text, highlight, className = '', bookId, font = 'amiri', footnotes }: PageReaderProps) {
+  // Parse footnotes from JSON string
+  const parsedFootnotes = useMemo(() => {
+    if (!footnotes) return [];
+    try {
+      return JSON.parse(footnotes) as string[];
+    } catch {
+      return [];
+    }
+  }, [footnotes]);
+
   const processedText = useMemo(() => {
     let result = text;
 
@@ -204,9 +215,24 @@ export default function PageReader({ text, highlight, className = '', bookId, fo
   const fontClass = `font-${font}`;
 
   return (
-    <div
-      className={`page-reader arabic-text ${fontClass} ${isBiharAlAnwar(bookId) ? 'bihar-anwar' : ''} ${className}`}
-      dangerouslySetInnerHTML={{ __html: processedText }}
-    />
+    <div className={`page-reader-container ${className}`}>
+      <div
+        className={`page-reader arabic-text ${fontClass} ${isBiharAlAnwar(bookId) ? 'bihar-anwar' : ''}`}
+        dangerouslySetInnerHTML={{ __html: processedText }}
+      />
+      {parsedFootnotes.length > 0 && (
+        <div className={`footnotes-section arabic-text ${fontClass}`}>
+          <div className="footnotes-divider" />
+          <div className="footnotes-title">الحواشي</div>
+          <div className="footnotes-list">
+            {parsedFootnotes.map((footnote, index) => (
+              <div key={index} className="footnote-item">
+                {footnote}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

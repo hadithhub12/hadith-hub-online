@@ -290,6 +290,52 @@ mark, .highlight {
   color: #9ca3af;
 }
 
+/* Footnotes section */
+.footnotes-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  direction: rtl;
+  text-align: right;
+}
+
+.footnotes-divider {
+  width: 40%;
+  height: 1px;
+  background: linear-gradient(to left, var(--border), transparent);
+  margin-bottom: 1rem;
+  margin-right: auto;
+}
+
+.footnotes-title {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.dark .footnotes-title {
+  color: #9ca3af;
+}
+
+.footnotes-list {
+  font-size: 0.9rem;
+  line-height: 2;
+}
+
+.footnote-item {
+  color: #4b5563;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.footnote-item:last-child {
+  border-bottom: none;
+}
+
+.dark .footnote-item {
+  color: #d1d5db;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
