@@ -145,6 +145,21 @@ function formatBiharAlAnwarText(text: string): string {
     '<span class="hadith-source-ref">$1</span>'
   );
 
+  // 12. Format chain of narrators (sanad/isnad)
+  // The sanad typically starts after the source reference and ends at "قَالَ" or "قال" or before the actual hadith text
+  // Pattern: matches chains with عَنْ أَبِيهِ عَنْ جَدِّهِ or similar narrator chains
+  // We look for sequences containing عن (from) followed by names, ending with قال (said)
+  result = result.replace(
+    /((?:عَنْ|عن)\s+[^،:]+(?:،\s*(?:عَنْ|عن)\s+[^،:]+)*)(،?\s*)((?:قَالَ|قال))/g,
+    '<span class="hadith-sanad">$1</span>$2$3'
+  );
+
+  // Also format the beginning narrator chains that start with حدثنا or أخبرنا
+  result = result.replace(
+    /((?:حَدَّثَنَا|حدثنا|أَخْبَرَنَا|أخبرنا)\s+[^،]+(?:،\s*(?:عَنْ|عن|حَدَّثَنَا|حدثنا)\s+[^،]+)*)(،?\s*)((?:قَالَ|قال|أَنَّ|أن))/g,
+    '<span class="hadith-sanad">$1</span>$2$3'
+  );
+
   return result;
 }
 
