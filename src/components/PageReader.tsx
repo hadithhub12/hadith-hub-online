@@ -3,11 +3,14 @@
 import { useMemo } from 'react';
 import { linkQuranVerses } from '@/lib/quran-detector';
 
+import type { ArabicFont } from './FontSelector';
+
 interface PageReaderProps {
   text: string;
   highlight?: string;
   className?: string;
   bookId?: string;
+  font?: ArabicFont;
 }
 
 function escapeRegex(str: string): string {
@@ -145,7 +148,7 @@ function formatBiharAlAnwarText(text: string): string {
   return result;
 }
 
-export default function PageReader({ text, highlight, className = '', bookId }: PageReaderProps) {
+export default function PageReader({ text, highlight, className = '', bookId, font = 'amiri' }: PageReaderProps) {
   const processedText = useMemo(() => {
     let result = text;
 
@@ -183,9 +186,11 @@ export default function PageReader({ text, highlight, className = '', bookId }: 
     return result;
   }, [text, highlight, bookId]);
 
+  const fontClass = `font-${font}`;
+
   return (
     <div
-      className={`page-reader arabic-text ${isBiharAlAnwar(bookId) ? 'bihar-anwar' : ''} ${className}`}
+      className={`page-reader arabic-text ${fontClass} ${isBiharAlAnwar(bookId) ? 'bihar-anwar' : ''} ${className}`}
       dangerouslySetInnerHTML={{ __html: processedText }}
     />
   );

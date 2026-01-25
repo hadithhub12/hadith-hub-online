@@ -44,12 +44,35 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Arabic text styling */
+/* Arabic text styling - default font */
 .arabic-text {
   font-family: var(--font-amiri), 'Amiri', 'Traditional Arabic', serif;
   direction: rtl;
   text-align: right;
   line-height: 2.2;
+}
+
+/* Arabic font variants */
+.arabic-text.font-amiri {
+  font-family: var(--font-amiri), 'Amiri', serif;
+}
+
+.arabic-text.font-scheherazade {
+  font-family: var(--font-scheherazade), 'Scheherazade New', serif;
+}
+
+.arabic-text.font-noto-naskh {
+  font-family: var(--font-noto-naskh), 'Noto Naskh Arabic', serif;
+}
+
+.arabic-text.font-noto-nastaliq {
+  font-family: var(--font-noto-nastaliq), 'Noto Nastaliq Urdu', serif;
+  line-height: 3;
+}
+
+.arabic-text.font-lateef {
+  font-family: var(--font-lateef), 'Lateef', serif;
+  line-height: 2.8;
 }
 
 /* Page reader styling */
@@ -166,6 +189,14 @@ mark, .highlight {
   border-radius: 4px;
   font-family: system-ui, sans-serif;
   direction: ltr;
+  margin-top: 1.5rem;
+}
+
+/* First hadith badge doesn't need top margin */
+.hadith-chapter-header + br + .hadith-number-badge,
+.hadith-section-header + br + .hadith-number-badge,
+.hadith-book-title + br + .hadith-number-badge {
+  margin-top: 0;
 }
 
 /* Source abbreviation - cyan text */

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import PageReader from '@/components/PageReader';
 import ShareButton from '@/components/ShareButton';
 import ThemeToggle from '@/components/ThemeToggle';
+import FontSelector, { useArabicFont } from '@/components/FontSelector';
 import type { Book, Page } from '@/lib/types';
 
 interface Navigation {
@@ -29,6 +30,7 @@ export default function ReaderPage({
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
   const [goToPage, setGoToPage] = useState('');
+  const { font } = useArabicFont();
 
   useEffect(() => {
     const saved = localStorage.getItem('hadith-lang');
@@ -155,6 +157,7 @@ export default function ReaderPage({
                 </button>
               </form>
 
+              <FontSelector language={language} />
               <ThemeToggle />
               <ShareButton url={currentUrl} title={`${title} - ${language === 'ar' ? `صفحة ${pageNum}` : `Page ${pageNum}`}`} />
             </div>
@@ -235,7 +238,7 @@ export default function ReaderPage({
         )}
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gray-500/5 border border-gray-200 dark:border-gray-700 p-6 md:p-10">
-          <PageReader text={pageData.text} highlight={highlight} bookId={id} />
+          <PageReader text={pageData.text} highlight={highlight} bookId={id} font={font} />
         </div>
       </main>
 
