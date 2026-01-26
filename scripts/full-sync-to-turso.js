@@ -65,14 +65,18 @@ async function fullSyncToTurso() {
   `);
   console.log('   Pages table ready');
 
-  // Create index if not exists
+  // Create index if not exists (skip if it takes too long)
+  console.log('   Creating index (may take a while)...');
   try {
-    await tursoClient.execute(`
-      CREATE INDEX IF NOT EXISTS idx_pages_book_vol_page ON pages(book_id, volume, page)
-    `);
+    await Promise.race([
+      tursoClient.execute(`
+        CREATE INDEX IF NOT EXISTS idx_pages_book_vol_page ON pages(book_id, volume, page)
+      `),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Index creation timeout')), 30000))
+    ]);
     console.log('   Index ready');
   } catch (e) {
-    console.log('   Index might already exist');
+    console.log('   Index skipped:', e.message);
   }
 
   // Step 2: Sync books

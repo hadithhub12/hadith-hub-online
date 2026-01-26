@@ -14,7 +14,7 @@ const AdmZip = require('adm-zip');
 const HADITH_DATA_PATH = path.join(__dirname, '..', '..', 'arabic-library', 'hadith-data');
 const BOOKS_JSON_PATH = path.join(HADITH_DATA_PATH, 'books.json');
 const BOOKS_DIR = path.join(HADITH_DATA_PATH, 'books');
-const OUTPUT_DB_PATH = path.join(__dirname, '..', 'src', 'data', 'hadith.db');
+const OUTPUT_DB_PATH = process.env.OUTPUT_DB_PATH || path.join(__dirname, '..', 'src', 'data', 'hadith.db');
 
 // Ensure output directory exists
 const outputDir = path.dirname(OUTPUT_DB_PATH);
@@ -100,6 +100,7 @@ db.exec(`
     page INTEGER NOT NULL,
     text TEXT NOT NULL,
     text_normalized TEXT NOT NULL,
+    footnotes TEXT,
     FOREIGN KEY (book_id) REFERENCES books(id),
     UNIQUE(book_id, volume, page)
   );
@@ -148,8 +149,8 @@ const insertBook = db.prepare(`
 `);
 
 const insertPage = db.prepare(`
-  INSERT OR REPLACE INTO pages (book_id, volume, page, text, text_normalized)
-  VALUES (?, ?, ?, ?, ?)
+  INSERT OR REPLACE INTO pages (book_id, volume, page, text, text_normalized, footnotes)
+  VALUES (?, ?, ?, ?, ?, ?)
 `);
 
 // Process books
@@ -192,6 +193,21 @@ const processZip = db.transaction((zipPath) => {
     // Track volumes from this zip
     const bookData = addedBooks.get(bookId);
 
+    // Build a map of footnote files for quick lookup
+    const footnoteMap = new Map();
+    for (const entry of entries) {
+      const fnMatch = entry.entryName.match(/volumes\/(\d+)\/(\d+)\.footnotes\.txt$/);
+      if (fnMatch) {
+        const key = `${fnMatch[1]}/${fnMatch[2]}`;
+        try {
+          const content = entry.getData().toString('utf8');
+          footnoteMap.set(key, content);
+        } catch (e) {
+          // Ignore footnote read errors
+        }
+      }
+    }
+
     // Process page files
     let pagesInZip = 0;
     for (const entry of entries) {
@@ -214,7 +230,11 @@ const processZip = db.transaction((zipPath) => {
           }
           const normalized = normalizeArabic(text);
 
-          insertPage.run(bookId, volume, page, text, normalized);
+          // Check for corresponding footnotes file
+          const fnKey = `${match[1]}/${match[2]}`;
+          const footnotes = footnoteMap.get(fnKey) || null;
+
+          insertPage.run(bookId, volume, page, text, normalized, footnotes);
           pagesInZip++;
         } catch (e) {
           // First file of first few books - log errors
