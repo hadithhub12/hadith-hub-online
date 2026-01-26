@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getPage, getBook, getAdjacentPages, getVolumeTotalPages } from '@/lib/db';
 
-// Allow caching for page content - revalidate every 10 minutes
-export const revalidate = 600;
+// Allow caching for page content - revalidate every hour
+export const revalidate = 3600;
 
 export async function GET(
   request: Request,
@@ -44,7 +44,7 @@ export async function GET(
       },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600',
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
         },
       }
     );
