@@ -3,7 +3,9 @@ import { searchPages } from '@/lib/db';
 import { prepareSearchQuery, isRomanText } from '@/lib/transliteration';
 import type { SearchResult } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
+// Search results can be cached briefly - same query returns same results
+// Use a short revalidate period since content rarely changes
+export const revalidate = 300; // 5 minutes
 
 type SearchMode = 'word' | 'root' | 'exact';
 
@@ -154,14 +156,22 @@ export async function GET(request: Request) {
     // Determine if this was a transliterated search
     const wasTransliterated = isRomanText(query);
 
-    return NextResponse.json({
-      query,
-      total: results.length,
-      results,
-      mode,
-      transliterated: wasTransliterated,
-      searchTerms: searchQueries.slice(0, 3), // Show what was actually searched
-    });
+    return NextResponse.json(
+      {
+        query,
+        total: results.length,
+        results,
+        mode,
+        transliterated: wasTransliterated,
+        searchTerms: searchQueries.slice(0, 3), // Show what was actually searched
+      },
+      {
+        headers: {
+          // Cache search results for 5 minutes, allow stale for 1 hour
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+        },
+      }
+    );
   } catch (error) {
     console.error('Search error:', error);
     return NextResponse.json(

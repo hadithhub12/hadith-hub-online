@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getPage, getBook, getAdjacentPages, getVolumeTotalPages } from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
+// Allow caching for page content - revalidate every hour
+export const revalidate = 3600;
 
 export async function GET(
   request: Request,
@@ -19,7 +20,13 @@ export async function GET(
       );
     }
 
-    const pageData = await getPage(bookId, volume, page);
+    // Parallelize all database queries for better performance
+    const [pageData, book, navigation, totalPages] = await Promise.all([
+      getPage(bookId, volume, page),
+      getBook(bookId),
+      getAdjacentPages(bookId, volume, page),
+      getVolumeTotalPages(bookId, volume),
+    ]);
 
     if (!pageData) {
       return NextResponse.json(
@@ -28,16 +35,19 @@ export async function GET(
       );
     }
 
-    const book = await getBook(bookId);
-    const navigation = await getAdjacentPages(bookId, volume, page);
-    const totalPages = await getVolumeTotalPages(bookId, volume);
-
-    return NextResponse.json({
-      page: pageData,
-      book,
-      navigation,
-      totalPages,
-    });
+    return NextResponse.json(
+      {
+        page: pageData,
+        book,
+        navigation,
+        totalPages,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching page:', error);
     return NextResponse.json(

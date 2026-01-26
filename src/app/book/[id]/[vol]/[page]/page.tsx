@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import PageReader from '@/components/PageReader';
 import ShareButton from '@/components/ShareButton';
 import ThemeToggle from '@/components/ThemeToggle';
-import FontSelector, { useArabicFont } from '@/components/FontSelector';
+import FontSelector from '@/components/FontSelector';
+import { useFont } from '@/context/FontContext';
 import type { Book, Page } from '@/lib/types';
 
 interface Navigation {
@@ -21,6 +22,7 @@ export default function ReaderPage({
 }) {
   const { id, vol, page: pageNum } = use(params);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const highlight = searchParams.get('highlight') || undefined;
 
   const [pageData, setPageData] = useState<Page | null>(null);
@@ -31,7 +33,7 @@ export default function ReaderPage({
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
   const [goToPage, setGoToPage] = useState('');
-  const { font } = useArabicFont();
+  const { font } = useFont();
 
   useEffect(() => {
     const saved = localStorage.getItem('hadith-lang');
@@ -59,6 +61,29 @@ export default function ReaderPage({
     }
     fetchPage();
   }, [id, vol, pageNum]);
+
+  // Arrow key navigation
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Don't navigate if user is typing in an input field
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    const highlightParam = highlight ? `?highlight=${encodeURIComponent(highlight)}` : '';
+
+    if (e.key === 'ArrowLeft' && navigation?.next) {
+      // Left arrow = next page (RTL reading direction)
+      router.push(`/book/${id}/${navigation.next.volume}/${navigation.next.page}${highlightParam}`);
+    } else if (e.key === 'ArrowRight' && navigation?.prev) {
+      // Right arrow = previous page (RTL reading direction)
+      router.push(`/book/${id}/${navigation.prev.volume}/${navigation.prev.page}${highlightParam}`);
+    }
+  }, [navigation, id, highlight, router]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const handleGoToPage = (e: React.FormEvent) => {
     e.preventDefault();

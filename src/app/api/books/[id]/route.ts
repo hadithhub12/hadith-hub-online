@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getBook, getBookVolumes } from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
+// Book metadata rarely changes - cache for 1 hour
+export const revalidate = 3600;
 
 export async function GET(
   request: Request,
@@ -9,7 +10,12 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const book = await getBook(id);
+
+    // Parallelize database queries
+    const [book, volumes] = await Promise.all([
+      getBook(id),
+      getBookVolumes(id),
+    ]);
 
     if (!book) {
       return NextResponse.json(
@@ -18,9 +24,14 @@ export async function GET(
       );
     }
 
-    const volumes = await getBookVolumes(id);
-
-    return NextResponse.json({ book, volumes });
+    return NextResponse.json(
+      { book, volumes },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching book:', error);
     return NextResponse.json(
