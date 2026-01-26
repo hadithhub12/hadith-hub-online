@@ -240,7 +240,7 @@ export default function PageReader({ text, highlight, className = '', bookId, fo
       {parsedFootnotes.length > 0 && (
         <div className={`footnotes-section arabic-text ${fontClass}`} style={{ fontSize: `${currentFontSize.scale * 0.9}rem` }}>
           <div className="footnotes-divider" />
-          <div className="footnotes-title">الحواشي</div>
+          <div className="footnotes-title">الحواشي والتعليقات ({parsedFootnotes.length})</div>
           <div className="footnotes-list">
             {parsedFootnotes.map((footnote, index) => (
               <div

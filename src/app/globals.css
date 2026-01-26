@@ -292,62 +292,123 @@ mark, .highlight {
 
 /* Footnotes section */
 .footnotes-section {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
+  margin-top: 2.5rem;
+  padding: 1.5rem;
   direction: rtl;
   text-align: right;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .footnotes-section {
+  background: linear-gradient(to bottom, #1e293b, #1a2332);
+  border-color: #334155;
 }
 
 .footnotes-divider {
-  width: 40%;
-  height: 1px;
-  background: linear-gradient(to left, var(--border), transparent);
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to left, #0891b2, #06b6d4, transparent);
   margin-bottom: 1rem;
-  margin-right: auto;
+  border-radius: 1px;
+}
+
+.dark .footnotes-divider {
+  background: linear-gradient(to left, #22d3ee, #06b6d4, transparent);
 }
 
 .footnotes-title {
-  color: #6b7280;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
+  color: #0891b2;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footnotes-title::before {
+  content: "📝";
+  font-size: 1.1rem;
 }
 
 .dark .footnotes-title {
-  color: #9ca3af;
+  color: #22d3ee;
 }
 
 .footnotes-list {
-  font-size: 0.9rem;
-  line-height: 2;
+  font-size: 0.95rem;
+  line-height: 2.2;
 }
 
 .footnote-item {
-  color: #4b5563;
-  padding: 0.25rem 0;
-  border-bottom: 1px dashed var(--border);
+  color: #374151;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  border-right: 3px solid #0891b2;
 }
 
 .footnote-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .dark .footnote-item {
-  color: #d1d5db;
+  color: #e5e7eb;
+  background: rgba(0, 0, 0, 0.2);
+  border-right-color: #22d3ee;
 }
 
-/* Footnote markers in text - cyan superscript */
+/* Footnote numbers like (1), (2) at start of footnotes */
+.footnote-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0891b2, #0e7490);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85em;
+  padding: 0.15em 0.5em;
+  border-radius: 4px;
+  margin-left: 0.5em;
+  font-family: system-ui, sans-serif;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .footnote-number {
+  background: linear-gradient(135deg, #22d3ee, #06b6d4);
+  color: #0c4a6e;
+}
+
+/* Footnote markers in text 【N】 - cyan badge superscript */
 .footnote-marker {
-  color: #0891b2;
-  font-size: 0.75em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0891b2, #0e7490);
+  color: #ffffff;
+  font-size: 0.7em;
+  font-weight: 700;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
   vertical-align: super;
-  font-weight: 600;
-  padding: 0 0.1em;
-  cursor: default;
+  margin: 0 0.15em;
+  font-family: system-ui, sans-serif;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.footnote-marker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .dark .footnote-marker {
-  color: #22d3ee;
+  background: linear-gradient(135deg, #22d3ee, #06b6d4);
+  color: #0c4a6e;
 }
 
 /* Book reference links in footnotes */

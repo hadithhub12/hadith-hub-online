@@ -25,7 +25,7 @@ const BOOK_DATABASE: Array<{ names: string[]; info: BookInfo }> = [
   { names: ['بحار الأنوار', 'بحار الانوار', 'البحار'], info: { id: '01407' } },
 
   // الكافي - Al-Kafi (don't include 'كافي' alone as it causes double matching)
-  { names: ['الكافي', 'الکافي'], info: { id: '01348' } },
+  { names: ['الكافي', 'الکافي', 'اصول كافى', 'أصول الكافي', 'اصول الكافي'], info: { id: '01348' } },
 
   // علل الشرائع - Ilal al-Shara'i
   { names: ['علل الشرائع', 'علل الشرایع', 'العلل'], info: { id: '01498' } },
@@ -131,6 +131,8 @@ function bookUrl(bookId: string, volume: number, page: number): string {
  * - بصائر الدرجات: 1/127 (volume/page)
  * - الكافي ج 8 ص 151
  * - كشف الغمّة ج 3 ص 179
+ * - بحار الانوار 310/70 (page/volume)
+ * - اصول كافى 131/2 (page/volume)
  */
 export function linkBookReferences(text: string): string {
   let result = text;
@@ -179,10 +181,33 @@ export function linkBookReferences(text: string): string {
         const url = bookUrl(book.info.id, book.info.defaultVolume || 1, parseInt(page, 10));
         return `<a href="${url}" class="book-ref-link">${match}</a>`;
       });
+
+      // Pattern 5: Book name followed by space and page/volume (e.g., بحار الانوار 310/70 or اصول كافى 131/2)
+      // Note: In this format, the first number is the page and the second is the volume
+      const pattern5 = new RegExp(
+        `(${escapedName})\\s+(\\d+)\\/(\\d+)(?!\\d)`,
+        'g'
+      );
+      result = result.replace(pattern5, (match, name, page, volume) => {
+        const url = bookUrl(book.info.id, parseInt(volume, 10), parseInt(page, 10));
+        return `<a href="${url}" class="book-ref-link">${match}</a>`;
+      });
     }
   }
 
   return result;
+}
+
+/**
+ * Style footnote numbers (1), (2), (٣), etc. at the start of footnotes
+ */
+function styleFootnoteNumbers(text: string): string {
+  // Match footnote numbers at the start: (1), (2), (١), (٢), etc.
+  // Also handles (1) in the middle of text for secondary references
+  return text.replace(
+    /\(([٠-٩\d]+)\)/g,
+    '<span class="footnote-number">($1)</span>'
+  );
 }
 
 /**
@@ -191,7 +216,10 @@ export function linkBookReferences(text: string): string {
 export function processFootnoteLinks(footnote: string): string {
   let result = footnote;
 
-  // First link Quran verses
+  // First style footnote numbers
+  result = styleFootnoteNumbers(result);
+
+  // Then link Quran verses
   result = linkQuranVerses(result);
 
   // Then link book references

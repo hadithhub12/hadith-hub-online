@@ -27,11 +27,11 @@ function getTursoClient(): Client {
 }
 
 function getSqliteDb(): Database.Database {
-  if (!sqliteDb) {
-    sqliteDb = new Database(DB_PATH, { readonly: true });
-    sqliteDb.pragma('journal_mode = WAL');
-  }
-  return sqliteDb;
+  // Force fresh connection - no caching for now
+  // TODO: Re-enable caching after database is stabilized
+  const db = new Database(DB_PATH, { readonly: true });
+  db.pragma('journal_mode = WAL');
+  return db;
 }
 
 export async function getAllBooks(): Promise<Book[]> {
