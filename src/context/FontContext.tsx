@@ -110,11 +110,7 @@ export function FontProvider({ children }: { children: ReactNode }) {
   const currentFont = ARABIC_FONTS.find(f => f.id === font) || ARABIC_FONTS[0];
   const currentFontSize = FONT_SIZES.find(s => s.id === fontSize) || FONT_SIZES[2];
 
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Always provide context (with defaults before mounting to prevent hydration issues)
   return (
     <FontContext.Provider value={{
       font,
