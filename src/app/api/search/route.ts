@@ -3,9 +3,8 @@ import { searchPages } from '@/lib/db';
 import { prepareSearchQuery, isRomanText } from '@/lib/transliteration';
 import type { SearchResult } from '@/lib/types';
 
-// Search results can be cached briefly - same query returns same results
-// Use a short revalidate period since content rarely changes
-export const revalidate = 300; // 5 minutes
+// Search requires dynamic rendering since it uses request.url for query params
+export const dynamic = 'force-dynamic';
 
 type SearchMode = 'word' | 'root' | 'exact';
 
