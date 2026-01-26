@@ -5,13 +5,15 @@
 
 // Common words mapping (exact matches)
 const COMMON_WORDS: Record<string, string[]> = {
-  'allah': ['الله'],
+  // Core Islamic terms
+  'allah': ['الله', 'اللّه'],
   'muhammad': ['محمد', 'محمّد'],
-  'hadith': ['حديث', 'الحديث'],
-  'imam': ['إمام', 'امام', 'الإمام'],
+  'hadith': ['حديث', 'الحديث', 'حدیث'],
+  'imam': ['إمام', 'امام', 'الإمام', 'الامام'],
   'quran': ['قرآن', 'القرآن'],
   'prophet': ['نبي', 'النبي', 'رسول'],
   'rasool': ['رسول', 'الرسول'],
+  'rasul': ['رسول', 'الرسول'],
   'salam': ['سلام', 'السلام'],
   'salat': ['صلاة', 'الصلاة'],
   'zakat': ['زكاة', 'الزكاة'],
@@ -19,28 +21,139 @@ const COMMON_WORDS: Record<string, string[]> = {
   'sawm': ['صوم', 'الصوم'],
   'fasting': ['صوم', 'الصوم', 'صيام'],
   'prayer': ['صلاة', 'الصلاة', 'دعاء'],
-  'book': ['كتاب', 'الكتاب'],
+  'dua': ['دعاء', 'الدعاء'],
+
+  // Famous hadith terms - man kunto maula
+  'man': ['من', 'مَن', 'مَنْ'],
+  'kunto': ['كنت', 'كُنت', 'كُنْت', 'کنت'],
+  'kunt': ['كنت', 'كُنت', 'كُنْت', 'کنت'],
+  'maula': ['مولا', 'مولى', 'مَولا', 'مَوْلا', 'مولاه'],
+  'mawla': ['مولا', 'مولى', 'مَولا', 'مَوْلا', 'مولاه'],
+  'mola': ['مولا', 'مولى', 'مَولا', 'مولاه'],
+  'hadha': ['هذا', 'هَذا', 'فهذا'],
+  'haza': ['هذا', 'هَذا', 'فهذا'],
+  'ghadir': ['غدير', 'الغدير', 'غَدير'],
+  'khumm': ['خم', 'خُم'],
+  'khum': ['خم', 'خُم'],
+  'thaqalayn': ['ثقلين', 'الثقلين', 'ثَقَلَين'],
+  'saqlain': ['ثقلين', 'الثقلين'],
+
+  // Book and chapter terms
+  'book': ['كتاب', 'الكتاب', 'کتاب'],
+  'kitab': ['كتاب', 'الكتاب', 'کتاب'],
   'chapter': ['باب', 'فصل'],
+  'bab': ['باب', 'الباب'],
+
+  // Narration terms
   'narrated': ['روى', 'حدثنا', 'أخبرنا'],
-  'said': ['قال', 'قالت'],
+  'said': ['قال', 'قالت', 'قَال'],
+  'qala': ['قال', 'قَال'],
+  'qal': ['قال', 'قَال'],
   'from': ['عن', 'من'],
-  'ali': ['علي', 'عليّ'],
-  'hussain': ['حسين', 'الحسين'],
-  'hassan': ['حسن', 'الحسن'],
-  'fatima': ['فاطمة'],
-  'khadija': ['خديجة'],
-  'aisha': ['عائشة'],
-  'abu': ['أبو', 'ابو'],
+  'an': ['عن', 'أن', 'أنّ', 'إن'],
+  'inna': ['إن', 'إنّ', 'أن', 'أنّ'],
+  'anna': ['أن', 'أنّ', 'أنه'],
+
+  // Names - Imams and Prophets
+  'ali': ['علي', 'عليّ', 'علیّ'],
+  'hussain': ['حسين', 'الحسين', 'حُسين'],
+  'husain': ['حسين', 'الحسين', 'حُسين'],
+  'husayn': ['حسين', 'الحسين', 'حُسين'],
+  'hussein': ['حسين', 'الحسين', 'حُسين'],
+  'hassan': ['حسن', 'الحسن', 'حَسن'],
+  'hasan': ['حسن', 'الحسن', 'حَسن'],
+  'fatima': ['فاطمة', 'فاطمه'],
+  'zahra': ['زهراء', 'الزهراء'],
+  'jafar': ['جعفر', 'جَعفر'],
+  'sadiq': ['صادق', 'الصادق'],
+  'baqir': ['باقر', 'الباقر'],
+  'kazim': ['كاظم', 'الكاظم', 'کاظم'],
+  'rida': ['رضا', 'الرضا'],
+  'ridha': ['رضا', 'الرضا'],
+  'jawad': ['جواد', 'الجواد'],
+  'hadi': ['هادي', 'الهادي', 'هادی'],
+  'askari': ['عسكري', 'العسكري', 'عسکری'],
+  'mahdi': ['مهدي', 'المهدي', 'مهدی'],
+
+  // Other names
+  'khadija': ['خديجة', 'خدیجه'],
+  'aisha': ['عائشة', 'عایشه'],
+  'abu': ['أبو', 'ابو', 'أبي', 'ابی'],
   'ibn': ['ابن', 'بن'],
+  'bin': ['بن', 'ابن'],
   'bint': ['بنت'],
-  'sharif': ['شريف'],
+  'umm': ['أم', 'ام'],
+
+  // Common descriptors
+  'sharif': ['شريف', 'شریف'],
   'hikam': ['حکم', 'حكم', 'الحكم'],
   'gharar': ['غرر'],
+  'amir': ['أمير', 'امیر', 'أمیر'],
+  'muminin': ['مؤمنين', 'المؤمنین', 'المومنین'],
+  'mumineen': ['مؤمنين', 'المؤمنین', 'المومنین'],
+
+  // Theological terms
+  'tawhid': ['توحيد', 'التوحيد', 'توحید'],
+  'nubuwwa': ['نبوة', 'النبوة', 'نبوه'],
+  'imama': ['امامة', 'الامامة', 'إمامة'],
+  'adl': ['عدل', 'العدل'],
+  'maad': ['معاد', 'المعاد'],
+  'qiyama': ['قيامة', 'القيامة', 'قیامه'],
+
+  // Book titles
+  'kafi': ['كافي', 'الكافي', 'کافی'],
+  'bihar': ['بحار', 'بِحار'],
+  'anwar': ['أنوار', 'الأنوار', 'انوار'],
+  'wasail': ['وسائل', 'الوسائل'],
+  'nahj': ['نهج', 'نَهج'],
+  'balagha': ['بلاغة', 'البلاغة', 'بلاغه'],
+
+  // Verbs and common words
+  'alayka': ['عليك', 'علیک'],
+  'alayhi': ['عليه', 'علیه'],
+  'alayha': ['عليها', 'علیها'],
+  'salla': ['صلى', 'صَلّى'],
+  'wasallam': ['وسلم', 'وسلّم'],
+  'rabb': ['رب', 'ربّ', 'الرب'],
+  'rabbi': ['ربي', 'ربّي'],
+  'ilahi': ['إلهي', 'الهي'],
+  'ya': ['يا', 'یا'],
+  'wa': ['و', 'وَ'],
+  'la': ['لا', 'لَا'],
+  'ila': ['إلى', 'الى', 'إلی'],
+  'fi': ['في', 'فی', 'فِي'],
+  'min': ['من', 'مِن'],
+  'ala': ['على', 'علی', 'عَلى'],
+  'huwa': ['هو', 'هُو'],
+  'hiya': ['هي', 'هِي'],
+  'ana': ['أنا', 'انا'],
+  'anta': ['أنت', 'انت'],
+  'nahnu': ['نحن'],
+  'hum': ['هم', 'هُم'],
+  'allahumma': ['اللهم', 'اللّهم'],
+  'bismillah': ['بسم الله', 'بسمالله'],
+  'subhan': ['سبحان'],
+  'alhamdulillah': ['الحمد لله', 'الحمدلله'],
 };
 
 // Letter mappings (Roman to possible Arabic letters)
 const LETTER_MAP: Record<string, string[]> = {
-  'a': ['ا', 'أ', 'إ', 'آ', 'ع', 'ى'],
+  // Vowels - most common first
+  'a': ['ا', 'أ', 'ع', 'ى', 'إ', 'آ'],
+  'e': ['ي', 'ا', 'ى', 'ع'],
+  'i': ['ي', 'ا', 'إ'],
+  'o': ['و', 'ا'],
+  'u': ['و', 'ا', 'ؤ'],
+  // Long vowels
+  'aa': ['ا', 'آ', 'ى'],
+  'ee': ['ي', 'ى'],
+  'ii': ['ي', 'ى'],
+  'oo': ['و'],
+  'ou': ['و'],
+  'aw': ['او', 'و'],
+  'ay': ['اي', 'ي'],
+
+  // Consonants
   'b': ['ب'],
   't': ['ت', 'ط'],
   'th': ['ث', 'ذ'],
@@ -53,22 +166,17 @@ const LETTER_MAP: Record<string, string[]> = {
   'z': ['ز', 'ظ'],
   's': ['س', 'ص'],
   'sh': ['ش'],
+  'ss': ['ص'],
   'gh': ['غ'],
   'f': ['ف'],
-  'q': ['ق'],
-  'k': ['ك', 'ک'],
+  'q': ['ق', 'ك'],
+  'k': ['ك', 'ک', 'ق'],
   'l': ['ل'],
   'm': ['م'],
   'n': ['ن'],
   'w': ['و', 'ؤ'],
   'y': ['ي', 'ى', 'ئ'],
-  'e': ['ي', 'ى', 'ا', 'ع'],
-  'i': ['ي', 'إ', 'ا'],
-  'o': ['و', 'ا'],
-  'u': ['و', 'ا', 'ؤ'],
-  'aa': ['ا', 'آ'],
-  'ee': ['ي', 'ى'],
-  'oo': ['و'],
+  'c': ['ك', 'س'],
 };
 
 // Prefix handling
@@ -121,7 +229,8 @@ export function romanToArabic(text: string): string[] {
   }
 
   // Generate combinations (limit to avoid explosion)
-  return generateCombinations(results).slice(0, 10);
+  // Increase limit for better coverage
+  return generateCombinations(results).slice(0, 20);
 }
 
 function convertWord(word: string): string[] {
@@ -157,10 +266,12 @@ function transliterateLetters(word: string): string[] {
   if (word.length === 0) return [''];
 
   const results: string[] = [];
-  let i = 0;
 
   // Build possible transliterations
   function build(current: string, pos: number) {
+    // Limit results during generation
+    if (results.length >= 10) return;
+
     if (pos >= word.length) {
       results.push(current);
       return;
@@ -170,8 +281,15 @@ function transliterateLetters(word: string): string[] {
     if (pos < word.length - 1) {
       const twoLetters = word.slice(pos, pos + 2);
       if (LETTER_MAP[twoLetters]) {
-        for (const arabic of LETTER_MAP[twoLetters]) {
+        for (const arabic of LETTER_MAP[twoLetters].slice(0, 3)) {
           build(current + arabic, pos + 2);
+        }
+        // Also try single letter to allow for more variations
+        const letter = word[pos];
+        if (LETTER_MAP[letter]) {
+          for (const arabic of LETTER_MAP[letter].slice(0, 2)) {
+            build(current + arabic, pos + 1);
+          }
         }
         return;
       }
@@ -180,7 +298,7 @@ function transliterateLetters(word: string): string[] {
     // Single letter
     const letter = word[pos];
     if (LETTER_MAP[letter]) {
-      for (const arabic of LETTER_MAP[letter].slice(0, 2)) { // Limit options
+      for (const arabic of LETTER_MAP[letter].slice(0, 3)) { // Increase limit
         build(current + arabic, pos + 1);
       }
     } else {
@@ -191,8 +309,8 @@ function transliterateLetters(word: string): string[] {
 
   build('', 0);
 
-  // Limit results to prevent explosion
-  return results.slice(0, 5);
+  // Return unique results
+  return [...new Set(results)].slice(0, 8);
 }
 
 function generateCombinations(wordOptions: string[][]): string[] {
@@ -203,8 +321,9 @@ function generateCombinations(wordOptions: string[][]): string[] {
   const [first, ...rest] = wordOptions;
   const restCombinations = generateCombinations(rest);
 
-  for (const word of first.slice(0, 3)) { // Limit first word options
-    for (const combo of restCombinations.slice(0, 3)) { // Limit combinations
+  // Increase limits for better coverage
+  for (const word of first.slice(0, 4)) {
+    for (const combo of restCombinations.slice(0, 5)) {
       results.push(word + ' ' + combo);
     }
   }

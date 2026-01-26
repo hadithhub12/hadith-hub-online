@@ -140,7 +140,7 @@ export async function GET(request: Request) {
               volume: result.page.volume,
               page: result.page.page,
               snippet: result.snippet,
-              shareUrl: `/book/${result.page.book_id}/${result.page.volume}/${result.page.page}?highlight=${encodeURIComponent(query)}`,
+              shareUrl: `/book/${result.page.book_id}/${result.page.volume}/${result.page.page}?highlight=${encodeURIComponent(query)}&mode=${mode}`,
             });
           }
         }

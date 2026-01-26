@@ -24,6 +24,7 @@ export default function ReaderPage({
   const searchParams = useSearchParams();
   const router = useRouter();
   const highlight = searchParams.get('highlight') || undefined;
+  const searchMode = searchParams.get('mode') || 'exact';
 
   const [pageData, setPageData] = useState<Page | null>(null);
   const [book, setBook] = useState<Book | null>(null);
@@ -246,7 +247,7 @@ export default function ReaderPage({
       {/* Page Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         {highlight && (
-          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl text-sm flex items-center justify-between">
+          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl text-sm flex flex-wrap items-center justify-between gap-3">
             <span className="text-amber-800 dark:text-amber-200 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
@@ -255,12 +256,23 @@ export default function ReaderPage({
                 ? `تم تمييز: "${highlight}"`
                 : `Highlighted: "${highlight}"`}
             </span>
-            <Link
-              href={`/book/${id}/${vol}/${pageNum}`}
-              className="px-3 py-1 text-sm font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 bg-amber-100 dark:bg-amber-800/30 hover:bg-amber-200 dark:hover:bg-amber-800/50 rounded-lg transition-colors"
-            >
-              {language === 'ar' ? 'إزالة التمييز' : 'Clear'}
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/search?q=${encodeURIComponent(highlight)}&mode=${searchMode}`}
+                className="px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 bg-blue-100 dark:bg-blue-800/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                {language === 'ar' ? 'العودة للبحث' : 'Back to search'}
+              </Link>
+              <Link
+                href={`/book/${id}/${vol}/${pageNum}`}
+                className="px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 bg-amber-100 dark:bg-amber-800/30 hover:bg-amber-200 dark:hover:bg-amber-800/50 rounded-lg transition-colors"
+              >
+                {language === 'ar' ? 'إزالة التمييز' : 'Clear'}
+              </Link>
+            </div>
           </div>
         )}
 
