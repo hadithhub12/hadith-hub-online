@@ -219,8 +219,8 @@ export default function Home() {
                 <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                   <BookIcon className="w-3.5 h-3.5" />
                   {language === 'ar'
-                    ? `${books.length.toLocaleString()} كتاب متاح`
-                    : `${books.length.toLocaleString()} books available`}
+                    ? `${books.length.toLocaleString()} كتب`
+                    : `${books.length.toLocaleString()} books`}
                 </p>
               </div>
             </div>
