@@ -7,7 +7,7 @@ import ShareButton from '@/components/ShareButton';
 import ThemeToggle from '@/components/ThemeToggle';
 import type { SearchResult } from '@/lib/types';
 
-type SearchMode = 'word' | 'root' | 'exact';
+type SearchMode = 'word' | 'root' | 'exact' | 'topic';
 
 const RESULTS_PER_PAGE = 50;
 
@@ -48,6 +48,13 @@ function SearchModeIcon({ mode }: { mode: SearchMode }) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5" />
+      </svg>
+    );
+  }
+  if (mode === 'topic') {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
       </svg>
     );
   }
@@ -244,6 +251,7 @@ function SearchHeader({
               { mode: 'exact' as SearchMode, labelAr: 'عبارة', labelEn: 'Exact', descAr: 'البحث عن العبارة بالضبط', descEn: 'Match exact phrase' },
               { mode: 'word' as SearchMode, labelAr: 'كلمة', labelEn: 'Word', descAr: 'البحث عن الكلمة', descEn: 'Match any word' },
               { mode: 'root' as SearchMode, labelAr: 'جذر', labelEn: 'Root', descAr: 'البحث عن الجذر', descEn: 'Match word roots' },
+              { mode: 'topic' as SearchMode, labelAr: 'موضوع', labelEn: 'Topic', descAr: 'البحث الذكي عن الموضوع', descEn: 'AI-powered semantic search' },
             ]).map(({ mode, labelAr, labelEn, descAr, descEn }) => (
               <button
                 key={mode}
@@ -251,7 +259,9 @@ function SearchHeader({
                 title={language === 'ar' ? descAr : descEn}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-1.5 ${
                   searchMode === mode
-                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    ? mode === 'topic'
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                      : 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
@@ -289,10 +299,16 @@ function SearchResultsContent({ query, searchMode, language }: { query: string; 
       setError(null);
       setCurrentPage(1);
       try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}&lang=${language}&mode=${searchMode}&limit=500`
-        );
-        if (!res.ok) throw new Error('Search failed');
+        // Use different API endpoint for topic search
+        const apiUrl = searchMode === 'topic'
+          ? `/api/topic-search?q=${encodeURIComponent(query)}&limit=50`
+          : `/api/search?q=${encodeURIComponent(query)}&lang=${language}&mode=${searchMode}&limit=500`;
+
+        const res = await fetch(apiUrl);
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Search failed');
+        }
         const data = await res.json();
         setResults(data.results || []);
         setTotal(data.total);
@@ -433,6 +449,17 @@ function SearchResultsContent({ query, searchMode, language }: { query: string; 
                 <strong className="text-gray-900 dark:text-white">{language === 'ar' ? 'جذر:' : 'Root:'}</strong>{' '}
                 <span className="text-gray-600 dark:text-gray-400">
                   {language === 'ar' ? 'يبحث عن الكلمات المشتقة من نفس الجذر' : 'Matches words derived from the same root'}
+                </span>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <SearchModeIcon mode="topic" />
+              <div>
+                <strong className="text-amber-700 dark:text-amber-400">{language === 'ar' ? 'موضوع:' : 'Topic:'}</strong>{' '}
+                <span className="text-gray-600 dark:text-gray-400">
+                  {language === 'ar'
+                    ? 'بحث ذكي بالذكاء الاصطناعي - ابحث عن "فضل العلم" أو "Imam Hussain in Karbala"'
+                    : 'AI-powered semantic search - try "benefits of knowledge" or "patience in hardship"'}
                 </span>
               </div>
             </li>

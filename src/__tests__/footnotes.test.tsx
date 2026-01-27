@@ -135,11 +135,11 @@ describe('PageReader Footnotes', () => {
     it('applies font class', () => {
       renderPageReader({
         text: 'نص عربي',
-        font: 'naskh',
+        font: 'noto-naskh',
       });
 
       const reader = document.querySelector('.page-reader');
-      expect(reader?.classList.contains('font-naskh')).toBe(true);
+      expect(reader?.classList.contains('font-noto-naskh')).toBe(true);
     });
   });
 
