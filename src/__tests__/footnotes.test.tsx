@@ -31,8 +31,8 @@ describe('PageReader Footnotes', () => {
         footnotes,
       });
 
-      // Should show footnotes title
-      expect(screen.getByText('الحواشي')).toBeInTheDocument();
+      // Should show footnotes title (partial match since it includes count)
+      expect(screen.getByText(/الحواشي/)).toBeInTheDocument();
 
       // Should show footnote content
       expect(screen.getByText('هذه حاشية أولى')).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe('PageReader Footnotes', () => {
         footnotes: null,
       });
 
-      expect(screen.queryByText('الحواشي')).not.toBeInTheDocument();
+      expect(screen.queryByText(/الحواشي/)).not.toBeInTheDocument();
     });
 
     it('does not render footnotes section when footnotes are empty array', () => {
@@ -54,7 +54,7 @@ describe('PageReader Footnotes', () => {
         footnotes: '[]',
       });
 
-      expect(screen.queryByText('الحواشي')).not.toBeInTheDocument();
+      expect(screen.queryByText(/الحواشي/)).not.toBeInTheDocument();
     });
 
     it('handles invalid JSON gracefully', () => {

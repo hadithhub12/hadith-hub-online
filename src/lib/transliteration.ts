@@ -216,6 +216,82 @@ export function normalizeArabic(text: string): string {
 }
 
 /**
+ * Generate search variations for Arabic text to handle common spelling differences
+ * This helps match "ماتا" to "مات", "قالا" to "قال", etc.
+ */
+export function generateArabicVariations(text: string): string[] {
+  const normalized = normalizeArabic(text);
+  const variations: Set<string> = new Set([normalized]);
+
+  // Split into words and generate variations for each
+  const words = normalized.split(/\s+/);
+  const wordVariations: string[][] = words.map(word => {
+    const vars: string[] = [word];
+
+    // Pattern 1: Remove trailing alef after certain consonants (ماتا -> مات, قالا -> قال)
+    // This handles dual/colloquial verb forms
+    if (word.endsWith('تا') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // Remove final alef: ماتا -> مات
+    }
+    if (word.endsWith('لا') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // قالا -> قال
+    }
+    if (word.endsWith('نا') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // كانا -> كان
+    }
+    if (word.endsWith('با') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // ذهبا -> ذهب
+    }
+    if (word.endsWith('را') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // صارا -> صار
+    }
+    if (word.endsWith('عا') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // رجعا -> رجع
+    }
+    if (word.endsWith('ما') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // قاما -> قام
+    }
+    if (word.endsWith('دا') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // عادا -> عاد
+    }
+    if (word.endsWith('سا') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // جلسا -> جلس
+    }
+    if (word.endsWith('فا') && word.length > 2) {
+      vars.push(word.slice(0, -1)); // وقفا -> وقف
+    }
+
+    // Pattern 2: Add trailing alef (reverse - for when user types مات but text has ماتا)
+    // Only for short words that look like verbs
+    if (word.length >= 3 && word.length <= 5) {
+      const lastChar = word[word.length - 1];
+      if (['ت', 'ل', 'ن', 'ب', 'ر', 'ع', 'م', 'د', 'س', 'ف'].includes(lastChar)) {
+        vars.push(word + 'ا');
+      }
+    }
+
+    return vars;
+  });
+
+  // Generate all combinations of word variations
+  function generateCombos(index: number, current: string[]): string[] {
+    if (index >= wordVariations.length) {
+      return [current.join(' ')];
+    }
+    const results: string[] = [];
+    for (const variant of wordVariations[index]) {
+      results.push(...generateCombos(index + 1, [...current, variant]));
+    }
+    return results;
+  }
+
+  const allVariations = generateCombos(0, []);
+  allVariations.forEach(v => variations.add(v));
+
+  return Array.from(variations);
+}
+
+/**
  * Convert Roman text to possible Arabic search queries
  */
 export function romanToArabic(text: string): string[] {
@@ -343,9 +419,14 @@ export function prepareSearchQuery(query: string): string[] {
   if (isRomanText(trimmed)) {
     // Convert Roman to Arabic variations
     const arabicQueries = romanToArabic(trimmed);
-    return arabicQueries.map(q => normalizeArabic(q));
+    // Generate Arabic variations for each romanized query
+    const allVariations: Set<string> = new Set();
+    for (const q of arabicQueries) {
+      generateArabicVariations(q).forEach(v => allVariations.add(v));
+    }
+    return Array.from(allVariations).slice(0, 30);
   } else {
-    // Direct Arabic search
-    return [normalizeArabic(trimmed)];
+    // Direct Arabic search - generate variations for fuzzy matching
+    return generateArabicVariations(trimmed);
   }
 }

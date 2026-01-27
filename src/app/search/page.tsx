@@ -294,7 +294,7 @@ function SearchResultsContent({ query, searchMode, language }: { query: string; 
         );
         if (!res.ok) throw new Error('Search failed');
         const data = await res.json();
-        setResults(data.results);
+        setResults(data.results || []);
         setTotal(data.total);
         setSearchTerms(data.searchTerms || []);
         setWasTransliterated(data.transliterated || false);
@@ -304,6 +304,7 @@ function SearchResultsContent({ query, searchMode, language }: { query: string; 
           setExpandedBooks(new Set([firstBookId]));
         }
       } catch (e) {
+        console.error('[SearchResultsContent] Error:', e);
         setError(e instanceof Error ? e.message : 'Search failed');
       } finally {
         setLoading(false);
@@ -700,12 +701,12 @@ function SearchPageContent() {
     }
   }, []);
 
-  // Sync with URL changes
+  // Sync with URL changes - always update state from URL params
   useEffect(() => {
     const urlQuery = searchParams.get('q') || '';
-    const urlMode = searchParams.get('mode') as SearchMode | null;
-    if (urlQuery !== query) setQuery(urlQuery);
-    if (urlMode && urlMode !== searchMode) setSearchMode(urlMode);
+    const urlMode = (searchParams.get('mode') as SearchMode) || 'exact';
+    setQuery(urlQuery);
+    setSearchMode(urlMode);
   }, [searchParams]);
 
   const handleModeChange = (mode: SearchMode) => {
