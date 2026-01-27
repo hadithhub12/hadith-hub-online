@@ -96,7 +96,7 @@ export default function Home() {
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
   const [filter, setFilter] = useState<'all' | 'shia' | 'sunni'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('compact');
   const [sortBy, setSortBy] = useState<SortBy>('title');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [currentPage, setCurrentPage] = useState(1);
