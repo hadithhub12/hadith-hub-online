@@ -38,7 +38,7 @@ export default function LanguageToggle({
         />
       </svg>
       <span className="font-medium">
-        {language === 'ar' ? 'العربية' : 'English'}
+        {language === 'ar' ? 'English' : 'العربية'}
       </span>
     </button>
   );
