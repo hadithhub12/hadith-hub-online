@@ -257,15 +257,15 @@ export default function ReaderPage({
                 : `Highlighted: "${highlight}"`}
             </span>
             <div className="flex items-center gap-2">
-              <Link
-                href={`/search?q=${encodeURIComponent(highlight)}&mode=${searchMode}`}
+              <button
+                onClick={() => router.back()}
                 className="px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 bg-blue-100 dark:bg-blue-800/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-lg transition-colors flex items-center gap-1.5"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
                 {language === 'ar' ? 'العودة للبحث' : 'Back to search'}
-              </Link>
+              </button>
               <Link
                 href={`/book/${id}/${vol}/${pageNum}`}
                 className="px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 bg-amber-100 dark:bg-amber-800/30 hover:bg-amber-200 dark:hover:bg-amber-800/50 rounded-lg transition-colors"
