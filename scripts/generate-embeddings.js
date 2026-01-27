@@ -146,13 +146,15 @@ async function ensureVectorIndex() {
 
 /**
  * Get pages that need embeddings
+ * Note: We query by ID range rather than checking embedding IS NULL
+ * because the NULL check is very slow on large tables without an index
  */
 async function getPagesWithoutEmbeddings(offset, limit) {
   const result = await tursoClient.execute({
     sql: `
       SELECT id, text_normalized
       FROM pages
-      WHERE embedding IS NULL AND id > ?
+      WHERE id > ?
       ORDER BY id
       LIMIT ?
     `,
@@ -197,15 +199,17 @@ async function generateAllEmbeddings() {
     await ensureEmbeddingColumn();
   }
 
-  // Step 2: Get total count
+  // Step 2: Get approximate total count (fast query)
+  console.log('\nGetting page count...');
   const countResult = await tursoClient.execute(`
-    SELECT COUNT(*) as total FROM pages WHERE embedding IS NULL
+    SELECT MAX(id) as max_id FROM pages
   `);
-  const totalPages = Math.min(countResult.rows[0].total, LIMIT);
-  console.log(`\nPages to process: ${totalPages}`);
+  const maxId = countResult.rows[0].max_id || 0;
+  const estimatedTotal = Math.min(maxId - START_FROM, LIMIT);
+  console.log(`Estimated pages to process: ~${estimatedTotal} (max_id: ${maxId})`);
 
-  if (totalPages === 0) {
-    console.log('All pages already have embeddings!');
+  if (maxId === 0) {
+    console.log('No pages found!');
     return;
   }
 
@@ -215,12 +219,14 @@ async function generateAllEmbeddings() {
   let lastId = START_FROM;
   let totalTokens = 0;
   let errors = 0;
+  let actualProcessed = 0;
 
   console.log('\nProcessing...');
 
-  while (processed < totalPages) {
-    const batchSize = Math.min(BATCH_SIZE, totalPages - processed);
-    const pages = await getPagesWithoutEmbeddings(lastId, batchSize);
+  while (processed < LIMIT) {
+    console.log(`  Fetching batch starting from ID ${lastId}...`);
+    const pages = await getPagesWithoutEmbeddings(lastId, BATCH_SIZE);
+    console.log(`  Got ${pages.length} pages`);
 
     if (pages.length === 0) break;
 
@@ -230,21 +236,26 @@ async function generateAllEmbeddings() {
       const texts = embeddingBatch.map(p => p.text || '');
 
       try {
+        console.log(`    Generating embeddings for ${texts.length} texts...`);
         const embeddings = await generateEmbeddings(texts);
+        console.log(`    Got ${embeddings.length} embeddings`);
 
         // Estimate tokens (rough: 1 token per 4 chars for Arabic)
         totalTokens += texts.reduce((sum, t) => sum + Math.ceil(t.length / 2), 0);
 
         if (!DRY_RUN) {
+          console.log(`    Saving to database...`);
           const pageEmbeddings = embeddingBatch.map((page, idx) => ({
             id: page.id,
             embedding: embeddings[idx],
           }));
 
           await updatePageEmbeddings(pageEmbeddings);
+          console.log(`    Saved!`);
         }
 
         processed += embeddingBatch.length;
+        actualProcessed += embeddingBatch.length;
         lastId = embeddingBatch[embeddingBatch.length - 1].id;
 
       } catch (error) {
@@ -254,6 +265,7 @@ async function generateAllEmbeddings() {
         // Skip this batch and continue
         lastId = embeddingBatch[embeddingBatch.length - 1].id;
         processed += embeddingBatch.length;
+        actualProcessed += embeddingBatch.length;
 
         // If too many errors, stop
         if (errors > 10) {
@@ -270,14 +282,15 @@ async function generateAllEmbeddings() {
     }
 
     // Progress logging
-    if (processed % LOG_EVERY === 0 || processed >= totalPages) {
+    if (actualProcessed % LOG_EVERY === 0 || actualProcessed > 0) {
       const elapsed = (Date.now() - startTime) / 1000;
-      const rate = processed / elapsed;
-      const eta = (totalPages - processed) / rate;
+      const rate = actualProcessed / elapsed;
+      const remaining = estimatedTotal - actualProcessed;
+      const eta = rate > 0 ? remaining / rate : 0;
       const cost = (totalTokens / 1000000) * 0.02; // $0.02 per 1M tokens
 
       console.log(
-        `  Progress: ${processed}/${totalPages} (${((processed/totalPages)*100).toFixed(1)}%)` +
+        `  Progress: ${actualProcessed}/${estimatedTotal} (${((actualProcessed/estimatedTotal)*100).toFixed(1)}%)` +
         ` | ${rate.toFixed(1)}/sec | ETA: ${(eta/60).toFixed(1)}min` +
         ` | Est. cost: $${cost.toFixed(2)}`
       );

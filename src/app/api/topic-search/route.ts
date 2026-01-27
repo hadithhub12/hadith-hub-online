@@ -66,8 +66,8 @@ async function searchByEmbedding(embedding: number[], limit: number = 50) {
       SELECT
         p.id, p.book_id, p.volume, p.page, p.text, p.text_normalized,
         b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
-      FROM vector_top_k('pages_embedding_idx', vector32(?), ?)
-      JOIN pages p ON p.rowid = id
+      FROM vector_top_k('pages_embedding_idx', vector32(?), ?) AS v
+      JOIN pages p ON p.rowid = v.id
       JOIN books b ON p.book_id = b.id
     `,
     args: [embeddingJson, limit],
