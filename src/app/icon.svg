@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1f33;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="pageGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#faf8f5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8e4dc;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4af37;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f4d03f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c5a028;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="248" fill="url(#bookGrad)"/>
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#goldGrad)" stroke-width="4"/>
+
+  <!-- Open book base -->
+  <path d="M96 160 L256 200 L416 160 L416 380 L256 420 L96 380 Z" fill="url(#pageGrad)" opacity="0.95"/>
+
+  <!-- Book spine/center -->
+  <path d="M256 200 L256 420" stroke="#1e3a5f" stroke-width="3" fill="none"/>
+
+  <!-- Left page curve effect -->
+  <path d="M96 160 Q176 190 256 200 L256 420 Q176 400 96 380 Z" fill="#fdfcfa"/>
+
+  <!-- Right page curve effect -->
+  <path d="M416 160 Q336 190 256 200 L256 420 Q336 400 416 380 Z" fill="#f5f3ef"/>
+
+  <!-- Decorative lines on left page -->
+  <line x1="120" y1="220" x2="240" y2="240" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="120" y1="250" x2="240" y2="270" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="120" y1="280" x2="240" y2="300" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="120" y1="310" x2="240" y2="330" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="120" y1="340" x2="220" y2="358" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+
+  <!-- Decorative lines on right page -->
+  <line x1="272" y1="240" x2="392" y2="220" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="272" y1="270" x2="392" y2="250" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="272" y1="300" x2="392" y2="280" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="272" y1="330" x2="392" y2="310" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+  <line x1="272" y1="358" x2="372" y2="340" stroke="#1e3a5f" stroke-width="2" opacity="0.3"/>
+
+  <!-- Gold ornamental border at top -->
+  <path d="M120 140 Q188 160 256 150 Q324 160 392 140" fill="none" stroke="url(#goldGrad)" stroke-width="3"/>
+
+  <!-- Stylized Arabic-inspired crescent moon above book -->
+  <path d="M256 80 Q220 100 220 130 Q220 160 256 180 Q240 160 240 130 Q240 100 256 80" fill="url(#goldGrad)"/>
+
+  <!-- Star accent -->
+  <polygon points="256,60 260,72 273,72 263,80 267,93 256,85 245,93 249,80 239,72 252,72" fill="url(#goldGrad)"/>
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1f33;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="pageGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#faf8f5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8e4dc;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4af37;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f4d03f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c5a028;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="180" height="180" rx="40" fill="url(#bookGrad)"/>
+
+  <!-- Open book base -->
+  <path d="M30 55 L90 70 L150 55 L150 135 L90 150 L30 135 Z" fill="url(#pageGrad)" opacity="0.95"/>
+
+  <!-- Book spine/center -->
+  <path d="M90 70 L90 150" stroke="#1e3a5f" stroke-width="1.5" fill="none"/>
+
+  <!-- Left page -->
+  <path d="M30 55 Q60 65 90 70 L90 150 Q60 142 30 135 Z" fill="#fdfcfa"/>
+
+  <!-- Right page -->
+  <path d="M150 55 Q120 65 90 70 L90 150 Q120 142 150 135 Z" fill="#f5f3ef"/>
+
+  <!-- Text lines left -->
+  <line x1="40" y1="82" x2="82" y2="90" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+  <line x1="40" y1="95" x2="82" y2="103" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+  <line x1="40" y1="108" x2="82" y2="116" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+  <line x1="40" y1="121" x2="75" y2="128" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+
+  <!-- Text lines right -->
+  <line x1="98" y1="90" x2="140" y2="82" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+  <line x1="98" y1="103" x2="140" y2="95" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+  <line x1="98" y1="116" x2="140" y2="108" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+  <line x1="98" y1="128" x2="135" y2="121" stroke="#1e3a5f" stroke-width="1.2" opacity="0.3"/>
+
+  <!-- Gold ornament -->
+  <path d="M45 48 Q67.5 54 90 50 Q112.5 54 135 48" fill="none" stroke="url(#goldGrad)" stroke-width="2"/>
+
+  <!-- Crescent -->
+  <path d="M90 25 Q78 32 78 42 Q78 52 90 60 Q82 52 82 42 Q82 32 90 25" fill="url(#goldGrad)"/>
+
+  <!-- Star -->
+  <polygon points="90,18 92,24 98,24 93,28 95,34 90,30 85,34 87,28 82,24 88,24" fill="url(#goldGrad)"/>
+</svg>
