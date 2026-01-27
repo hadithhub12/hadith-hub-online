@@ -214,7 +214,7 @@ export default function Home() {
               <LogoIcon className="w-10 h-10" />
               <div>
                 <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                  {language === 'ar' ? 'مركز الحديث أونلاين' : 'Hadith Hub Online'}
+                  {language === 'ar' ? 'مَرْكَزُ دِرَاسَاتِ الحَدِيث' : 'Hadith Hub Online'}
                 </h1>
                 <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                   <BookIcon className="w-3.5 h-3.5" />
@@ -526,7 +526,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <LogoIcon className="w-6 h-6" />
               <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                {language === 'ar' ? 'مركز الحديث أونلاين' : 'Hadith Hub Online'}
+                {language === 'ar' ? 'مَرْكَزُ دِرَاسَاتِ الحَدِيث' : 'Hadith Hub Online'}
               </span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
