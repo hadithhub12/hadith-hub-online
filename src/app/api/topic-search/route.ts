@@ -142,11 +142,46 @@ type SearchResult = {
 };
 
 /**
- * Search for pages by topic using FTS (full-text search)
- * This is a fast alternative to vector similarity search.
- * Returns pages that match the query terms, ranked by relevance.
+ * Search for pages using native vector similarity (Turso)
+ * Uses the vector index for fast approximate nearest neighbor search
  */
-async function searchByTopic(query: string, limit: number = 50): Promise<SearchResult[]> {
+async function searchByVector(queryEmbedding: number[], limit: number = 50): Promise<SearchResult[]> {
+  const client = getTursoClient();
+  if (!client) {
+    throw new Error('Turso client not configured');
+  }
+
+  // Use native vector_top_k for fast ANN search
+  const result = await client.execute({
+    sql: `
+      SELECT
+        p.book_id, p.volume, p.page, p.text,
+        b.title_ar, b.title_en, b.author_ar, b.author_en
+      FROM vector_top_k('pages_embedding_vec_idx', vector32(?), ?) AS v
+      JOIN pages p ON p.rowid = v.id
+      JOIN books b ON p.book_id = b.id
+    `,
+    args: [JSON.stringify(queryEmbedding), limit],
+  });
+
+  return result.rows.map(row => ({
+    book_id: row.book_id as string,
+    title_ar: row.title_ar as string,
+    title_en: row.title_en as string,
+    author_ar: row.author_ar as string,
+    author_en: row.author_en as string,
+    volume: row.volume as number,
+    page: row.page as number,
+    text: row.text as string,
+    similarity: 1, // vector_top_k returns by similarity order
+  }));
+}
+
+/**
+ * Search for pages by topic using FTS (full-text search)
+ * Fallback when vector search is not available
+ */
+async function searchByFTS(query: string, limit: number = 50): Promise<SearchResult[]> {
   const client = getTursoClient();
   if (!client) {
     throw new Error('Turso client not configured');
@@ -159,7 +194,6 @@ async function searchByTopic(query: string, limit: number = 50): Promise<SearchR
   }
 
   // Use the existing FTS index for fast topic-based search
-  // Quote the search term to avoid FTS5 syntax errors
   const result = await client.execute({
     sql: `
       SELECT
@@ -184,7 +218,7 @@ async function searchByTopic(query: string, limit: number = 50): Promise<SearchR
     volume: row.volume as number,
     page: row.page as number,
     text: row.text as string,
-    similarity: 1, // FTS doesn't provide similarity scores
+    similarity: 1,
   }));
 }
 
@@ -202,6 +236,14 @@ function createSnippet(text: string, maxLength: number = 300): string {
 
 export async function GET(request: Request) {
   try {
+    // Check if OpenAI is configured for embedding generation
+    if (!OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: 'Topic search is not configured. Missing OpenAI API key.' },
+        { status: 503 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
@@ -216,34 +258,28 @@ export async function GET(request: Request) {
 
     const startTime = Date.now();
 
-    // Search by topic using FTS (fast) or embeddings (dev only)
-    let results: Array<{
-      book_id: string;
-      title_ar: string;
-      title_en: string;
-      author_ar: string;
-      author_en: string;
-      volume: number;
-      page: number;
-      text: string;
-      similarity: number;
-    }>;
-    let source = 'turso-fts';
+    // Search using semantic vector similarity
+    let results: SearchResult[];
+    let source = 'vector';
 
-    if (IS_DEV) {
-      try {
+    try {
+      if (IS_DEV) {
         // In dev, use local embeddings for true semantic search
         const queryEmbedding = await generateQueryEmbedding(query);
         const localResults = searchLocalDb(queryEmbedding, limit);
         results = localResults;
         source = 'local-embeddings';
-      } catch {
-        // Fall back to FTS
-        results = await searchByTopic(query, limit);
+      } else {
+        // In production, use native vector search with OpenAI embeddings
+        const queryEmbedding = await generateQueryEmbedding(query);
+        results = await searchByVector(queryEmbedding, limit);
+        source = 'turso-vector';
       }
-    } else {
-      // In production, use FTS for fast response times
-      results = await searchByTopic(query, limit);
+    } catch (vectorError) {
+      // Fall back to FTS if vector search fails
+      console.log('Vector search failed, falling back to FTS:', vectorError);
+      results = await searchByFTS(query, limit);
+      source = 'turso-fts';
     }
 
     const searchTime = Date.now() - startTime;
