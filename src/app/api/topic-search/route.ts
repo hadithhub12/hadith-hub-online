@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // Allow longer execution time for batch processing
+export const maxDuration = 30; // Keep under Vercel timeout limits
 
 const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL;
 const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
@@ -153,15 +153,16 @@ async function searchByEmbedding(queryEmbedding: number[], limit: number = 50): 
     throw new Error('Turso client not configured');
   }
 
-  // Process in parallel batches for better coverage
-  // Each batch fetches from a different section of the database
-  const BATCH_SIZE = 2000;
-  const NUM_BATCHES = 5;
+  // Optimized: Fetch smaller sample for faster response
+  // Using random sampling across the database for good coverage
+  const BATCH_SIZE = 500;
+  const NUM_BATCHES = 3;
   const TOTAL_PAGES = 723000; // Approximate total pages with embeddings
 
   // Create batch queries that sample from different parts of the database
   const batchPromises = [];
   for (let i = 0; i < NUM_BATCHES; i++) {
+    // Sample from beginning, middle, and end of database
     const offset = Math.floor((TOTAL_PAGES / NUM_BATCHES) * i);
     batchPromises.push(
       client.execute({
