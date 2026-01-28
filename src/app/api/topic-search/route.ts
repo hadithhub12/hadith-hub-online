@@ -129,28 +129,64 @@ function searchLocalDb(queryEmbedding: number[], limit: number = 50) {
 
 /**
  * Search for similar pages using vector similarity (Turso)
+ * Uses server-side cosine similarity calculation since embeddings are stored as JSON text
+ *
+ * Strategy: Process multiple batches in parallel to maximize coverage within time limits.
  */
-async function searchByEmbedding(embedding: number[], limit: number = 50) {
+async function searchByEmbedding(queryEmbedding: number[], limit: number = 50) {
   const client = getTursoClient();
   if (!client) {
     throw new Error('Turso client not configured');
   }
 
-  const embeddingJson = JSON.stringify(embedding);
+  // Process in parallel batches for better coverage
+  // Each batch fetches from a different section of the database
+  const BATCH_SIZE = 2000;
+  const NUM_BATCHES = 5;
+  const TOTAL_PAGES = 723000; // Approximate total pages with embeddings
 
-  const result = await client.execute({
-    sql: `
-      SELECT
-        p.id, p.book_id, p.volume, p.page, p.text, p.text_normalized,
-        b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
-      FROM vector_top_k('pages_embedding_idx', vector32(?), ?) AS v
-      JOIN pages p ON p.rowid = v.id
-      JOIN books b ON p.book_id = b.id
-    `,
-    args: [embeddingJson, limit],
+  // Create batch queries that sample from different parts of the database
+  const batchPromises = [];
+  for (let i = 0; i < NUM_BATCHES; i++) {
+    const offset = Math.floor((TOTAL_PAGES / NUM_BATCHES) * i);
+    batchPromises.push(
+      client.execute({
+        sql: `
+          SELECT
+            p.id, p.book_id, p.volume, p.page, p.text, p.embedding,
+            b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
+          FROM pages p
+          JOIN books b ON p.book_id = b.id
+          WHERE p.embedding IS NOT NULL
+          LIMIT ?
+          OFFSET ?
+        `,
+        args: [BATCH_SIZE, offset],
+      })
+    );
+  }
+
+  // Execute all batches in parallel
+  const batchResults = await Promise.all(batchPromises);
+
+  // Combine all results
+  const allRows = batchResults.flatMap(result => result.rows);
+
+  // Calculate cosine similarity for each result
+  const scored = allRows.map(row => {
+    try {
+      const pageEmbedding = JSON.parse(row.embedding as string) as number[];
+      const similarity = cosineSimilarity(queryEmbedding, pageEmbedding);
+      return { ...row, similarity };
+    } catch {
+      return { ...row, similarity: 0 };
+    }
   });
 
-  return result.rows;
+  // Sort by similarity and return top results
+  scored.sort((a, b) => (b.similarity as number) - (a.similarity as number));
+
+  return scored.slice(0, limit);
 }
 
 /**
