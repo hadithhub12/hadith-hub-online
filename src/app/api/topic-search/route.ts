@@ -143,52 +143,59 @@ type SearchResult = {
 
 /**
  * Search for similar pages using vector similarity (Turso)
- * Uses server-side cosine similarity calculation since embeddings are stored as JSON text
- *
- * Strategy: Process multiple batches in parallel to maximize coverage within time limits.
+ * Uses a two-phase approach:
+ * 1. First, use keyword search to find candidate pages
+ * 2. Then, calculate vector similarity on the candidates
  */
-async function searchByEmbedding(queryEmbedding: number[], limit: number = 50): Promise<SearchResult[]> {
+async function searchByEmbedding(queryEmbedding: number[], query: string, limit: number = 50): Promise<SearchResult[]> {
   const client = getTursoClient();
   if (!client) {
     throw new Error('Turso client not configured');
   }
 
-  // Optimized: Fetch smaller sample for faster response
-  // Using random sampling across the database for good coverage
-  const BATCH_SIZE = 500;
-  const NUM_BATCHES = 3;
-  const TOTAL_PAGES = 723000; // Approximate total pages with embeddings
+  // Phase 1: Use FTS to find candidate pages that match query keywords
+  // This is much faster than scanning all embeddings
+  const CANDIDATE_LIMIT = 200;
 
-  // Create batch queries that sample from different parts of the database
-  const batchPromises = [];
-  for (let i = 0; i < NUM_BATCHES; i++) {
-    // Sample from beginning, middle, and end of database
-    const offset = Math.floor((TOTAL_PAGES / NUM_BATCHES) * i);
-    batchPromises.push(
-      client.execute({
-        sql: `
-          SELECT
-            p.id, p.book_id, p.volume, p.page, p.text, p.embedding,
-            b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
-          FROM pages p
-          JOIN books b ON p.book_id = b.id
-          WHERE p.embedding IS NOT NULL
+  const result = await client.execute({
+    sql: `
+      SELECT
+        p.id, p.book_id, p.volume, p.page, p.text, p.embedding,
+        b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
+      FROM pages p
+      JOIN books b ON p.book_id = b.id
+      WHERE p.embedding IS NOT NULL
+        AND p.id IN (
+          SELECT rowid FROM pages_fts WHERE pages_fts MATCH ?
           LIMIT ?
-          OFFSET ?
-        `,
-        args: [BATCH_SIZE, offset],
-      })
-    );
+        )
+    `,
+    args: [query, CANDIDATE_LIMIT],
+  });
+
+  // If FTS returns results, use them; otherwise fall back to random sampling
+  let rows = result.rows;
+
+  if (rows.length < 10) {
+    // FTS didn't find enough matches, try a simpler text search
+    const fallbackResult = await client.execute({
+      sql: `
+        SELECT
+          p.id, p.book_id, p.volume, p.page, p.text, p.embedding,
+          b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
+        FROM pages p
+        JOIN books b ON p.book_id = b.id
+        WHERE p.embedding IS NOT NULL
+          AND (p.text LIKE ? OR p.text_normalized LIKE ?)
+        LIMIT ?
+      `,
+      args: [`%${query}%`, `%${query}%`, CANDIDATE_LIMIT],
+    });
+    rows = fallbackResult.rows;
   }
 
-  // Execute all batches in parallel
-  const batchResults = await Promise.all(batchPromises);
-
-  // Combine all results
-  const allRows = batchResults.flatMap(result => result.rows);
-
-  // Calculate cosine similarity for each result
-  const scored = allRows.map(row => {
+  // Phase 2: Calculate cosine similarity for candidates
+  const scored = rows.map(row => {
     try {
       const pageEmbedding = JSON.parse(row.embedding as string) as number[];
       const similarity = cosineSimilarity(queryEmbedding, pageEmbedding);
@@ -284,10 +291,10 @@ export async function GET(request: Request) {
         source = 'local';
       } catch {
         // Fall back to Turso
-        results = await searchByEmbedding(queryEmbedding, limit);
+        results = await searchByEmbedding(queryEmbedding, query, limit);
       }
     } else {
-      results = await searchByEmbedding(queryEmbedding, limit);
+      results = await searchByEmbedding(queryEmbedding, query, limit);
     }
 
     const embeddingTime = Date.now() - startTime;
