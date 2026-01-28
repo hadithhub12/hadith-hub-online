@@ -143,9 +143,8 @@ type SearchResult = {
 
 /**
  * Search for similar pages using vector similarity (Turso)
- * Uses a two-phase approach:
- * 1. First, use keyword search to find candidate pages
- * 2. Then, calculate vector similarity on the candidates
+ * Uses text search to find candidates, then ranks by vector similarity.
+ * This is much faster than scanning all embeddings.
  */
 async function searchByEmbedding(queryEmbedding: number[], query: string, limit: number = 50): Promise<SearchResult[]> {
   const client = getTursoClient();
@@ -153,9 +152,9 @@ async function searchByEmbedding(queryEmbedding: number[], query: string, limit:
     throw new Error('Turso client not configured');
   }
 
-  // Phase 1: Use FTS to find candidate pages that match query keywords
-  // This is much faster than scanning all embeddings
-  const CANDIDATE_LIMIT = 200;
+  // Use text search to find candidate pages (fast due to index)
+  // Then calculate vector similarity only on candidates
+  const CANDIDATE_LIMIT = 100;
 
   const result = await client.execute({
     sql: `
@@ -165,36 +164,15 @@ async function searchByEmbedding(queryEmbedding: number[], query: string, limit:
       FROM pages p
       JOIN books b ON p.book_id = b.id
       WHERE p.embedding IS NOT NULL
-        AND p.id IN (
-          SELECT rowid FROM pages_fts WHERE pages_fts MATCH ?
-          LIMIT ?
-        )
+        AND (p.text_normalized LIKE ? OR p.text LIKE ?)
+      LIMIT ?
     `,
-    args: [query, CANDIDATE_LIMIT],
+    args: [`%${query}%`, `%${query}%`, CANDIDATE_LIMIT],
   });
 
-  // If FTS returns results, use them; otherwise fall back to random sampling
-  let rows = result.rows;
+  const rows = result.rows;
 
-  if (rows.length < 10) {
-    // FTS didn't find enough matches, try a simpler text search
-    const fallbackResult = await client.execute({
-      sql: `
-        SELECT
-          p.id, p.book_id, p.volume, p.page, p.text, p.embedding,
-          b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
-        FROM pages p
-        JOIN books b ON p.book_id = b.id
-        WHERE p.embedding IS NOT NULL
-          AND (p.text LIKE ? OR p.text_normalized LIKE ?)
-        LIMIT ?
-      `,
-      args: [`%${query}%`, `%${query}%`, CANDIDATE_LIMIT],
-    });
-    rows = fallbackResult.rows;
-  }
-
-  // Phase 2: Calculate cosine similarity for candidates
+  // Calculate cosine similarity for candidates
   const scored = rows.map(row => {
     try {
       const pageEmbedding = JSON.parse(row.embedding as string) as number[];
