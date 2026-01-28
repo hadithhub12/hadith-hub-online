@@ -128,13 +128,26 @@ function searchLocalDb(queryEmbedding: number[], limit: number = 50) {
   return scored.slice(0, limit);
 }
 
+// Result type for search functions
+type SearchResult = {
+  book_id: string;
+  title_ar: string;
+  title_en: string;
+  author_ar: string;
+  author_en: string;
+  volume: number;
+  page: number;
+  text: string;
+  similarity: number;
+};
+
 /**
  * Search for similar pages using vector similarity (Turso)
  * Uses server-side cosine similarity calculation since embeddings are stored as JSON text
  *
  * Strategy: Process multiple batches in parallel to maximize coverage within time limits.
  */
-async function searchByEmbedding(queryEmbedding: number[], limit: number = 50) {
+async function searchByEmbedding(queryEmbedding: number[], limit: number = 50): Promise<SearchResult[]> {
   const client = getTursoClient();
   if (!client) {
     throw new Error('Turso client not configured');
@@ -178,14 +191,34 @@ async function searchByEmbedding(queryEmbedding: number[], limit: number = 50) {
     try {
       const pageEmbedding = JSON.parse(row.embedding as string) as number[];
       const similarity = cosineSimilarity(queryEmbedding, pageEmbedding);
-      return { ...row, similarity };
+      return {
+        book_id: row.book_id as string,
+        title_ar: row.title_ar as string,
+        title_en: row.title_en as string,
+        author_ar: row.author_ar as string,
+        author_en: row.author_en as string,
+        volume: row.volume as number,
+        page: row.page as number,
+        text: row.text as string,
+        similarity,
+      };
     } catch {
-      return { ...row, similarity: 0 };
+      return {
+        book_id: row.book_id as string,
+        title_ar: row.title_ar as string,
+        title_en: row.title_en as string,
+        author_ar: row.author_ar as string,
+        author_en: row.author_en as string,
+        volume: row.volume as number,
+        page: row.page as number,
+        text: row.text as string,
+        similarity: 0,
+      };
     }
   });
 
   // Sort by similarity and return top results
-  scored.sort((a, b) => (b.similarity as number) - (a.similarity as number));
+  scored.sort((a, b) => b.similarity - a.similarity);
 
   return scored.slice(0, limit);
 }
@@ -230,7 +263,17 @@ export async function GET(request: Request) {
     const queryEmbedding = await generateQueryEmbedding(query);
 
     // Search by vector similarity - use local DB in dev if available
-    let results;
+    let results: Array<{
+      book_id: string;
+      title_ar: string;
+      title_en: string;
+      author_ar: string;
+      author_en: string;
+      volume: number;
+      page: number;
+      text: string;
+      similarity: number;
+    }>;
     let source = 'turso';
 
     if (IS_DEV) {
@@ -250,14 +293,14 @@ export async function GET(request: Request) {
 
     // Format results
     const formattedResults = results.map((row) => ({
-      bookId: row.book_id as string,
-      bookTitleAr: row.title_ar as string,
-      bookTitleEn: row.title_en as string,
-      authorAr: row.author_ar as string,
-      authorEn: row.author_en as string,
-      volume: row.volume as number,
-      page: row.page as number,
-      snippet: createSnippet(row.text as string),
+      bookId: row.book_id,
+      bookTitleAr: row.title_ar,
+      bookTitleEn: row.title_en,
+      authorAr: row.author_ar,
+      authorEn: row.author_en,
+      volume: row.volume,
+      page: row.page,
+      snippet: createSnippet(row.text),
       shareUrl: `/book/${row.book_id}/${row.volume}/${row.page}?highlight=${encodeURIComponent(query)}&mode=topic`,
     }));
 
