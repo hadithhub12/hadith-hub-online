@@ -142,71 +142,43 @@ type SearchResult = {
 };
 
 /**
- * Search for similar pages using vector similarity (Turso)
- * Uses text search to find candidates, then ranks by vector similarity.
- * This is much faster than scanning all embeddings.
+ * Search for pages by topic using FTS (full-text search)
+ * This is a fast alternative to vector similarity search.
+ * Returns pages that match the query terms, ranked by relevance.
  */
-async function searchByEmbedding(queryEmbedding: number[], query: string, limit: number = 50): Promise<SearchResult[]> {
+async function searchByTopic(query: string, limit: number = 50): Promise<SearchResult[]> {
   const client = getTursoClient();
   if (!client) {
     throw new Error('Turso client not configured');
   }
 
-  // Use text search to find candidate pages (fast due to index)
-  // Then calculate vector similarity only on candidates
-  const CANDIDATE_LIMIT = 100;
-
+  // Use the existing FTS index for fast topic-based search
   const result = await client.execute({
     sql: `
       SELECT
-        p.id, p.book_id, p.volume, p.page, p.text, p.embedding,
-        b.title_ar, b.title_en, b.author_ar, b.author_en, b.sect
-      FROM pages p
+        p.book_id, p.volume, p.page, p.text,
+        b.title_ar, b.title_en, b.author_ar, b.author_en
+      FROM pages_fts
+      JOIN pages p ON pages_fts.rowid = p.id
       JOIN books b ON p.book_id = b.id
-      WHERE p.embedding IS NOT NULL
-        AND (p.text_normalized LIKE ? OR p.text LIKE ?)
+      WHERE pages_fts MATCH ?
+      ORDER BY rank
       LIMIT ?
     `,
-    args: [`%${query}%`, `%${query}%`, CANDIDATE_LIMIT],
+    args: [query, limit],
   });
 
-  const rows = result.rows;
-
-  // Calculate cosine similarity for candidates
-  const scored = rows.map(row => {
-    try {
-      const pageEmbedding = JSON.parse(row.embedding as string) as number[];
-      const similarity = cosineSimilarity(queryEmbedding, pageEmbedding);
-      return {
-        book_id: row.book_id as string,
-        title_ar: row.title_ar as string,
-        title_en: row.title_en as string,
-        author_ar: row.author_ar as string,
-        author_en: row.author_en as string,
-        volume: row.volume as number,
-        page: row.page as number,
-        text: row.text as string,
-        similarity,
-      };
-    } catch {
-      return {
-        book_id: row.book_id as string,
-        title_ar: row.title_ar as string,
-        title_en: row.title_en as string,
-        author_ar: row.author_ar as string,
-        author_en: row.author_en as string,
-        volume: row.volume as number,
-        page: row.page as number,
-        text: row.text as string,
-        similarity: 0,
-      };
-    }
-  });
-
-  // Sort by similarity and return top results
-  scored.sort((a, b) => b.similarity - a.similarity);
-
-  return scored.slice(0, limit);
+  return result.rows.map(row => ({
+    book_id: row.book_id as string,
+    title_ar: row.title_ar as string,
+    title_en: row.title_en as string,
+    author_ar: row.author_ar as string,
+    author_en: row.author_en as string,
+    volume: row.volume as number,
+    page: row.page as number,
+    text: row.text as string,
+    similarity: 1, // FTS doesn't provide similarity scores
+  }));
 }
 
 /**
@@ -223,14 +195,6 @@ function createSnippet(text: string, maxLength: number = 300): string {
 
 export async function GET(request: Request) {
   try {
-    // Check if feature is enabled
-    if (!OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Topic search is not configured. Missing OpenAI API key.' },
-        { status: 503 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
@@ -245,10 +209,7 @@ export async function GET(request: Request) {
 
     const startTime = Date.now();
 
-    // Generate embedding for the query
-    const queryEmbedding = await generateQueryEmbedding(query);
-
-    // Search by vector similarity - use local DB in dev if available
+    // Search by topic using FTS (fast) or embeddings (dev only)
     let results: Array<{
       book_id: string;
       title_ar: string;
@@ -260,22 +221,25 @@ export async function GET(request: Request) {
       text: string;
       similarity: number;
     }>;
-    let source = 'turso';
+    let source = 'turso-fts';
 
     if (IS_DEV) {
       try {
+        // In dev, use local embeddings for true semantic search
+        const queryEmbedding = await generateQueryEmbedding(query);
         const localResults = searchLocalDb(queryEmbedding, limit);
         results = localResults;
-        source = 'local';
+        source = 'local-embeddings';
       } catch {
-        // Fall back to Turso
-        results = await searchByEmbedding(queryEmbedding, query, limit);
+        // Fall back to FTS
+        results = await searchByTopic(query, limit);
       }
     } else {
-      results = await searchByEmbedding(queryEmbedding, query, limit);
+      // In production, use FTS for fast response times
+      results = await searchByTopic(query, limit);
     }
 
-    const embeddingTime = Date.now() - startTime;
+    const searchTime = Date.now() - startTime;
 
     // Format results
     const formattedResults = results.map((row) => ({
@@ -298,7 +262,7 @@ export async function GET(request: Request) {
         mode: 'topic',
         source: IS_DEV ? source : undefined,
         timing: {
-          embeddingMs: embeddingTime,
+          searchMs: searchTime,
         },
       },
       {
