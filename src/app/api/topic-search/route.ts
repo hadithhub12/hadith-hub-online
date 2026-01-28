@@ -152,7 +152,14 @@ async function searchByTopic(query: string, limit: number = 50): Promise<SearchR
     throw new Error('Turso client not configured');
   }
 
+  // Escape special FTS characters and wrap in quotes for phrase matching
+  const escapedQuery = query.replace(/["\\]/g, '').trim();
+  if (!escapedQuery) {
+    return [];
+  }
+
   // Use the existing FTS index for fast topic-based search
+  // Quote the search term to avoid FTS5 syntax errors
   const result = await client.execute({
     sql: `
       SELECT
@@ -161,11 +168,11 @@ async function searchByTopic(query: string, limit: number = 50): Promise<SearchR
       FROM pages_fts
       JOIN pages p ON pages_fts.rowid = p.id
       JOIN books b ON p.book_id = b.id
-      WHERE pages_fts MATCH ?
+      WHERE pages_fts MATCH '"' || ? || '"'
       ORDER BY rank
       LIMIT ?
     `,
-    args: [query, limit],
+    args: [escapedQuery, limit],
   });
 
   return result.rows.map(row => ({
