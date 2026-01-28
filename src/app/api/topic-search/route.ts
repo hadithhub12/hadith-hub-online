@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Allow longer execution time for batch processing
 
 const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL;
 const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
