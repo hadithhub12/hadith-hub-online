@@ -565,11 +565,20 @@ export default function Home() {
                 {language === 'ar' ? 'مَرْكَزُ دِرَاسَاتِ الحَدِيث' : 'Hadith Hub Online'}
               </span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {language === 'ar'
-                ? 'جميع الحقوق محفوظة'
-                : 'All rights reserved'}
-            </p>
+            <div className="flex items-center gap-4">
+              <a
+                href="/help"
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                {language === 'ar' ? 'المساعدة' : 'Help'}
+              </a>
+              <span className="text-gray-300 dark:text-gray-600">|</span>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {language === 'ar'
+                  ? 'جميع الحقوق محفوظة'
+                  : 'All rights reserved'}
+              </p>
+            </div>
           </div>
         </div>
       </footer>
