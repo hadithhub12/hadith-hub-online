@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@libsql/client';
 import OpenAI from 'openai';
 import path from 'path';
+import { getTursoClient } from '@/lib/turso';
+import { vectorSearch, getProviderInfo, isVectorSearchAvailable } from '@/lib/vector-providers';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30; // Keep under Vercel timeout limits
 
-const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL;
-const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -15,19 +14,8 @@ const EMBEDDING_MODEL = 'text-embedding-3-small';
 const EMBEDDING_DIMENSIONS = 1536;
 
 // Initialize clients lazily
-let tursoClient: ReturnType<typeof createClient> | null = null;
 let openaiClient: OpenAI | null = null;
 let localDb: import('better-sqlite3').Database | null = null;
-
-function getTursoClient() {
-  if (!tursoClient && TURSO_DATABASE_URL && TURSO_AUTH_TOKEN) {
-    tursoClient = createClient({
-      url: TURSO_DATABASE_URL,
-      authToken: TURSO_AUTH_TOKEN,
-    });
-  }
-  return tursoClient;
-}
 
 function getLocalDb() {
   if (!localDb && IS_DEV) {
@@ -142,29 +130,43 @@ type SearchResult = {
 };
 
 /**
- * Search for pages using native vector similarity (Turso)
- * Uses the vector index for fast approximate nearest neighbor search
+ * Search for pages using vector similarity via the configured provider
+ * Supports Turso native vector search, Pinecone, or other providers
  */
-async function searchByVector(queryEmbedding: number[], limit: number = 50): Promise<SearchResult[]> {
+async function searchByVectorProvider(queryEmbedding: number[], limit: number = 50): Promise<SearchResult[]> {
   const client = getTursoClient();
   if (!client) {
     throw new Error('Turso client not configured');
   }
 
-  // Use native vector_top_k for fast ANN search
+  // Get vector search results (IDs and scores) from the configured provider
+  const vectorResults = await vectorSearch(queryEmbedding, limit);
+
+  if (vectorResults.length === 0) {
+    return [];
+  }
+
+  // Fetch full page data from Turso using the IDs
+  const ids = vectorResults.map(r => r.id);
+  const placeholders = ids.map(() => '?').join(',');
+
   const result = await client.execute({
     sql: `
       SELECT
-        p.book_id, p.volume, p.page, p.text,
+        p.id, p.book_id, p.volume, p.page, p.text,
         b.title_ar, b.title_en, b.author_ar, b.author_en
-      FROM vector_top_k('pages_embedding_vec_idx', vector32(?), ?) AS v
-      JOIN pages p ON p.rowid = v.id
+      FROM pages p
       JOIN books b ON p.book_id = b.id
+      WHERE p.id IN (${placeholders})
     `,
-    args: [JSON.stringify(queryEmbedding), limit],
+    args: ids,
   });
 
-  return result.rows.map(row => ({
+  // Create a map of id -> score for ordering
+  const scoreMap = new Map(vectorResults.map(r => [r.id, r.score]));
+
+  // Map results and preserve order by score
+  const mapped = result.rows.map(row => ({
     book_id: row.book_id as string,
     title_ar: row.title_ar as string,
     title_en: row.title_en as string,
@@ -173,8 +175,13 @@ async function searchByVector(queryEmbedding: number[], limit: number = 50): Pro
     volume: row.volume as number,
     page: row.page as number,
     text: row.text as string,
-    similarity: 1, // vector_top_k returns by similarity order
+    similarity: scoreMap.get(row.id as number) || 0,
   }));
+
+  // Sort by similarity (highest first)
+  mapped.sort((a, b) => b.similarity - a.similarity);
+
+  return mapped;
 }
 
 /**
@@ -262,6 +269,8 @@ export async function GET(request: Request) {
     let results: SearchResult[];
     let source = 'vector';
 
+    const providerInfo = getProviderInfo();
+
     try {
       if (IS_DEV) {
         // In dev, use local embeddings for true semantic search
@@ -269,17 +278,21 @@ export async function GET(request: Request) {
         const localResults = searchLocalDb(queryEmbedding, limit);
         results = localResults;
         source = 'local-embeddings';
-      } else {
-        // In production, use native vector search with OpenAI embeddings
+      } else if (isVectorSearchAvailable()) {
+        // In production, use configured vector provider
         const queryEmbedding = await generateQueryEmbedding(query);
-        results = await searchByVector(queryEmbedding, limit);
-        source = 'turso-vector';
+        results = await searchByVectorProvider(queryEmbedding, limit);
+        source = `vector-${providerInfo.name}`;
+      } else {
+        // No vector search available, use FTS directly
+        results = await searchByFTS(query, limit);
+        source = 'turso-fts';
       }
     } catch (vectorError) {
       // Fall back to FTS if vector search fails
       console.log('Vector search failed, falling back to FTS:', vectorError);
       results = await searchByFTS(query, limit);
-      source = 'turso-fts';
+      source = 'turso-fts-fallback';
     }
 
     const searchTime = Date.now() - startTime;

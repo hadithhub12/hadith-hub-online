@@ -99,7 +99,19 @@ export async function GET(request: Request) {
     }
 
     // Convert query to Arabic search terms
-    const searchQueries = prepareSearchQuery(query);
+    // For exact mode, use original query AND normalized versions to catch both
+    // The FTS index contains original text (with diacritics/hamza), so we need to search both
+    let searchQueries: string[];
+    if (mode === 'exact') {
+      // For exact search, try both original and normalized to maximize matches
+      const originalQuery = query.trim();
+      const normalizedQueries = prepareSearchQuery(query);
+      // Combine original + normalized, deduplicated
+      const querySet = new Set([originalQuery, ...normalizedQueries]);
+      searchQueries = Array.from(querySet);
+    } else {
+      searchQueries = prepareSearchQuery(query);
+    }
 
     if (searchQueries.length === 0) {
       return NextResponse.json({
