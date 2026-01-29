@@ -212,6 +212,10 @@ export function normalizeArabic(text: string): string {
     // Normalize Persian/Urdu characters
     .replace(/ک/g, 'ك')
     .replace(/ی/g, 'ي')
+    // Normalize Urdu heh (ہ U+06C1) to Arabic heh (ه U+0647)
+    .replace(/ہ/g, 'ه')
+    // Normalize Urdu/Persian yeh baree (ے U+06D2) to Arabic yaa
+    .replace(/ے/g, 'ي')
     .trim();
 }
 
