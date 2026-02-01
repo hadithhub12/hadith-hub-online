@@ -9,8 +9,9 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@libsql/client'],
   },
 
-  // Enable React strict mode for better debugging
+  // React strict mode
   reactStrictMode: true,
+
 
   // Optimize images
   images: {

@@ -280,75 +280,82 @@ mark, .highlight {
   color: #6ee7b7;
 }
 
-/* Chain of narrators (sanad) - muted gray color */
+/* Chain of narrators (sanad) - uses palette variable with fallback */
 .hadith-sanad {
-  color: #6b7280;
-  font-size: 0.95em;
+  color: var(--palette-sanad, #6b7280);
 }
 
 .dark .hadith-sanad {
-  color: #9ca3af;
+  color: var(--palette-sanad-dark, #9ca3af);
 }
 
-/* Footnotes section */
+/* "قال:" marker - orange to mark transition to hadith */
+.hadith-qala {
+  color: #d97706;
+  font-weight: 600;
+}
+
+.dark .hadith-qala {
+  color: #fbbf24;
+}
+
+/* Hadith text (matn) - uses palette variable with fallback */
+.hadith-matn {
+  color: var(--palette-matn, #1e40af);
+}
+
+.dark .hadith-matn {
+  color: var(--palette-matn-dark, #22d3ee);
+}
+
+/* Footnotes section - Bihar al-Anwar style (clean list) */
 .footnotes-section {
-  margin-top: 2.5rem;
-  padding: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
   direction: rtl;
   text-align: right;
-  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .dark .footnotes-section {
-  background: linear-gradient(to bottom, #1e293b, #1a2332);
-  border-color: #334155;
+  border-top-color: #374151;
+  background: transparent;
 }
 
 .footnotes-divider {
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(to left, #0891b2, #06b6d4, transparent);
-  margin-bottom: 1rem;
-  border-radius: 1px;
+  display: none;
 }
 
 .dark .footnotes-divider {
-  background: linear-gradient(to left, #22d3ee, #06b6d4, transparent);
+  display: none;
 }
 
 .footnotes-title {
-  color: #0891b2;
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: none;
 }
 
 .footnotes-title::before {
-  content: "📝";
-  font-size: 1.1rem;
+  display: none;
 }
 
 .dark .footnotes-title {
-  color: #22d3ee;
+  display: none;
 }
 
 .footnotes-list {
   font-size: 0.95rem;
-  line-height: 2.2;
+  line-height: 2.4;
 }
 
 .footnote-item {
-  color: #374151;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.5rem;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  border-right: 3px solid #0891b2;
+  color: var(--palette-footnote, #dc2626);
+  padding: 0.25rem 0;
+  margin-bottom: 0;
+  background: transparent;
+  border-radius: 0;
+  border-right: none;
 }
 
 .footnote-item:last-child {
@@ -356,30 +363,28 @@ mark, .highlight {
 }
 
 .dark .footnote-item {
-  color: #e5e7eb;
-  background: rgba(0, 0, 0, 0.2);
-  border-right-color: #22d3ee;
+  color: var(--palette-footnote-dark, #f87171);
+  background: transparent;
+  border-right: none;
 }
 
-/* Footnote numbers like (1), (2) at start of footnotes */
+/* Footnote numbers like (1), (2) at start of footnotes - Bihar style orange */
 .footnote-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #0891b2, #0e7490);
-  color: #ffffff;
+  display: inline;
+  background: none;
+  color: #d97706;
+  font-size: 1em;
   font-weight: 700;
-  font-size: 0.85em;
-  padding: 0.15em 0.5em;
-  border-radius: 4px;
-  margin-left: 0.5em;
-  font-family: system-ui, sans-serif;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  border-radius: 0;
+  margin-left: 0.25em;
+  font-family: inherit;
+  box-shadow: none;
 }
 
 .dark .footnote-number {
-  background: linear-gradient(135deg, #22d3ee, #06b6d4);
-  color: #0c4a6e;
+  background: none;
+  color: #f59e0b;
 }
 
 /* Footnote markers in text 【N】 - cyan badge superscript */
@@ -431,6 +436,136 @@ mark, .highlight {
 
 .dark .book-ref-link:hover {
   color: #c4b5fd;
+}
+
+/* ============================================
+   Universal Hadith Formatting
+   Works across all hadith books
+   Colors:
+   - White/Black: Main hadith text (matn)
+   - Cyan/Teal: Hadith numbers, narrator chains
+   - Orange: Chapter headers, author comments
+   - Green: Quran verses (handled by quran-link)
+   - Red: Footnote references
+   ============================================ */
+
+.hadith-formatted {
+  padding: 1.5rem;
+  border-radius: 8px;
+  /* Default text color */
+  color: #1f2937;
+}
+
+.dark .hadith-formatted {
+  color: #f3f4f6;
+}
+
+/* Chapter headers - uses palette variable */
+.hadith-chapter {
+  display: block;
+  color: var(--palette-chapter-header, #c2410c);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem 0;
+  padding: 0.75rem 0;
+  border-bottom: 2px solid var(--palette-chapter-header, #fdba74);
+  text-align: right;
+}
+
+.dark .hadith-chapter {
+  color: var(--palette-chapter-header-dark, #fb923c);
+  border-bottom-color: var(--palette-chapter-header-dark, #9a3412);
+}
+
+.hadith-chapter-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--palette-chapter-header, #c2410c);
+  color: #ffffff;
+  font-weight: 700;
+  min-width: 2rem;
+  padding: 0.2em 0.5em;
+  border-radius: 6px;
+  margin-left: 0.5rem;
+}
+
+.dark .hadith-chapter-num {
+  background: var(--palette-chapter-header-dark, #fb923c);
+  color: #1c1917;
+}
+
+.hadith-chapter-title {
+  color: var(--palette-chapter-header, #c2410c);
+}
+
+.dark .hadith-chapter-title {
+  color: var(--palette-chapter-header-dark, #fb923c);
+}
+
+/* Author comments "أقول:" - orange */
+.hadith-author-comment {
+  color: #c2410c;
+  font-weight: 700;
+}
+
+.dark .hadith-author-comment {
+  color: #fb923c;
+}
+
+/* Hadith number badge - uses palette variable */
+.hadith-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--palette-hadith-number, #0891b2);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9em;
+  min-width: 2.5rem;
+  padding: 0.15em 0.5em;
+  border-radius: 6px;
+  margin: 0 0.25rem;
+  font-family: system-ui, sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.dark .hadith-num {
+  background: var(--palette-hadith-number-dark, #22d3ee);
+  color: #0c4a6e;
+}
+
+/* Narrator chains - cyan */
+.hadith-narrator {
+  color: #0891b2;
+}
+
+.dark .hadith-narrator {
+  color: #22d3ee;
+}
+
+/* Imam names - distinguished cyan */
+.hadith-imam {
+  color: #0e7490;
+  font-weight: 600;
+}
+
+.dark .hadith-imam {
+  color: #67e8f9;
+}
+
+/* Footnote references - uses palette variable */
+.hadith-footnote-ref {
+  color: var(--palette-footnote, #dc2626);
+  font-size: 0.75em;
+  font-weight: 700;
+  vertical-align: super;
+  margin: 0 0.1em;
+  font-family: system-ui, sans-serif;
+}
+
+.dark .hadith-footnote-ref {
+  color: var(--palette-footnote-dark, #f87171);
 }
 
 /* Custom scrollbar */
