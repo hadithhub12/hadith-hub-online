@@ -116,6 +116,23 @@ export async function getVolumeTotalPages(bookId: string, volume: number): Promi
   }
 }
 
+export async function getVolumeFirstPage(bookId: string, volume: number): Promise<number | null> {
+  if (useTurso) {
+    const client = getTursoClient();
+    const result = await client.execute({
+      sql: `SELECT MIN(page) as firstPage FROM pages WHERE book_id = ? AND volume = ?`,
+      args: [bookId, volume],
+    });
+    return (result.rows[0]?.firstPage as number) || null;
+  } else {
+    const db = getSqliteDb();
+    const result = db.prepare(`
+      SELECT MIN(page) as firstPage FROM pages WHERE book_id = ? AND volume = ?
+    `).get(bookId, volume) as { firstPage: number } | undefined;
+    return result?.firstPage || null;
+  }
+}
+
 export async function getPage(bookId: string, volume: number, page: number): Promise<Page | undefined> {
   if (useTurso) {
     const client = getTursoClient();

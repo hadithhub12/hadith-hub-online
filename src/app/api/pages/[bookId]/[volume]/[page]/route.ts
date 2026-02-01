@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPage, getBook, getAdjacentPages, getVolumeTotalPages } from '@/lib/db';
+import { getPage, getBook, getAdjacentPages, getVolumeTotalPages, getVolumeFirstPage } from '@/lib/db';
 
 // Allow caching for page content - revalidate every hour
 export const revalidate = 3600;
@@ -29,6 +29,22 @@ export async function GET(
     ]);
 
     if (!pageData) {
+      // Page not found - check if volume exists and redirect to first page
+      const firstPage = await getVolumeFirstPage(bookId, volume);
+      if (firstPage !== null && firstPage !== page) {
+        // Return redirect info instead of 404
+        return NextResponse.json(
+          {
+            error: 'Page not found',
+            redirect: {
+              bookId,
+              volume,
+              page: firstPage
+            }
+          },
+          { status: 404 }
+        );
+      }
       return NextResponse.json(
         { error: 'Page not found' },
         { status: 404 }

@@ -48,8 +48,18 @@ export default function ReaderPage({
       setLoading(true);
       try {
         const res = await fetch(`/api/pages/${id}/${vol}/${pageNum}`);
-        if (!res.ok) throw new Error('Failed to fetch page');
         const data = await res.json();
+
+        // Handle redirect to first available page
+        if (!res.ok && data.redirect) {
+          const { bookId, volume, page } = data.redirect;
+          const highlightParam = highlight ? `?highlight=${encodeURIComponent(highlight)}` : '';
+          router.replace(`/book/${bookId}/${volume}/${page}${highlightParam}`);
+          return;
+        }
+
+        if (!res.ok) throw new Error('Failed to fetch page');
+
         setPageData(data.page);
         setBook(data.book);
         setNavigation(data.navigation);
@@ -61,7 +71,7 @@ export default function ReaderPage({
       }
     }
     fetchPage();
-  }, [id, vol, pageNum]);
+  }, [id, vol, pageNum, highlight, router]);
 
   // Arrow key navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
